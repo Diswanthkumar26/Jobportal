@@ -1,3 +1,4 @@
+// server/src/main/java/com/jobportal/server/entity/JobSeekerProfile.java
 package com.jobportal.server.entity;
 
 import jakarta.persistence.*;
@@ -32,8 +33,6 @@ public class JobSeekerProfile {
 
     private String resumeUrl;
     private String linkedin;
-
-    /* ================= Getters & Setters ================= */
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

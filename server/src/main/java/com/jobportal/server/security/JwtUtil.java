@@ -1,3 +1,4 @@
+// server/src/main/java/com/jobportal/server/security/JwtUtil.java
 package com.jobportal.server.security;
 
 import io.jsonwebtoken.Claims;

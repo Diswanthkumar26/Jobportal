@@ -1,3 +1,4 @@
+// server/src/main/java/com/jobportal/server/dto/UpdateJobSeekerRequest.java
 package com.jobportal.server.dto;
 
 import com.jobportal.server.entity.User;
@@ -21,7 +22,7 @@ public class UpdateJobSeekerRequest {
     private String location;
     private String photoUrl;
 
-    public static UpdateJobSeekerRequest fromUser(User u){
+    public static UpdateJobSeekerRequest fromUser(User u) {
         UpdateJobSeekerRequest dto = new UpdateJobSeekerRequest();
         dto.setAbout(u.getAbout());
         dto.setSkills(u.getSkills());
@@ -34,7 +35,6 @@ public class UpdateJobSeekerRequest {
         dto.setProjects(u.getProjects());
         dto.setEducation(u.getEducation());
         dto.setCertifications(u.getCertifications());
-
         return dto;
     }
 }

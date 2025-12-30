@@ -1,23 +1,27 @@
-
-import React from "react";
+// AboutSection.jsx
+import { FiEdit2 } from "react-icons/fi";
 
 export default function AboutSection({ about, onEdit }) {
+  const hasData = about && about.trim().length > 0;
+
   return (
-    <section className="bg-white rounded-lg border border-slate-200">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-        <h2 className="text-sm font-semibold text-slate-900">About</h2>
+    <section className="bg-white rounded-lg border border-slate-200 p-4 mb-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-semibold text-slate-900">About</h2>
 
-        <button
-          onClick={onEdit}
-          className="text-xs text-indigo-600 hover:underline"
-        >
-          Edit
-        </button>
+        {hasData && (
+          <button
+            className="p-1 rounded-full hover:bg-slate-100"
+            onClick={onEdit}
+          >
+            <FiEdit2 className="w-4 h-4 text-slate-600" />
+          </button>
+        )}
       </div>
 
-      <div className="px-4 py-3">
-        <p className="text-sm text-slate-700 whitespace-pre-line">{about}</p>
-      </div>
+      <p className="mt-2 text-sm text-slate-700">
+        {hasData ? about : "No about info added yet."}
+      </p>
     </section>
   );
 }

@@ -1,8 +1,6 @@
+// client/src/pages/dashboard/JobSeekerDashboard.jsx
 import React, { useState, useEffect } from "react";
-import {
-  getJobSeekerProfile,
-  updateJobSeekerProfile,
-} from "../../services/profileApi";
+import { getJobSeekerProfile, updateJobSeekerProfile } from "../../services/profileApi";
 import { useNavigate } from "react-router-dom";
 
 import ProfileHeader from "../../components/dashboard/jobseeker/ProfileHeader";
@@ -27,7 +25,12 @@ export default function JobSeekerDashboard() {
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState({ name: "", headline: "", location: "", photoUrl: "" });
+  const [profile, setProfile] = useState({
+    name: "",
+    headline: "",
+    location: "",
+    photoUrl: "",
+  });
 
   const [about, setAbout] = useState("");
   const [skills, setSkills] = useState([]);
@@ -41,27 +44,45 @@ export default function JobSeekerDashboard() {
   // Modals
   const [openProfileModal, setOpenProfileModal] = useState(false);
   const [openAboutModal, setOpenAboutModal] = useState(false);
-  const [openExperienceModal, setOpenExperienceModal] = useState(false);
+  const [openExperienceModal, setOpenExperienceModal] = useState(false); 
+  const [editingExpIndex, setEditingExpIndex] = useState(null); 
   const [openProjectModal, setOpenProjectModal] = useState(false);
   const [openSkillsModal, setOpenSkillsModal] = useState(false);
   const [openEducationModal, setOpenEducationModal] = useState(false);
   const [openCertModal, setOpenCertModal] = useState(false);
   const [openResumeModal, setOpenResumeModal] = useState(false);
 
-  const lockBodyScroll = (lock) => (document.body.style.overflow = lock ? "hidden" : "auto");
-  const openModal = (setter) => { setter(true); lockBodyScroll(true); };
-  const closeModal = (setter) => { setter(false); lockBodyScroll(false); };
+  const lockBodyScroll = (lock) => {
+    document.body.style.overflow = lock ? "hidden" : "auto";
+  };
+
+  const openModal = (setter) => {
+    setter(true);
+    lockBodyScroll(true);
+  };
+
+  const closeModal = (setter) => {
+    setter(false);
+    lockBodyScroll(false);
+  };
 
   useEffect(() => {
     loadProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function loadProfile() {
+    setLoading(true);
     try {
       const res = await getJobSeekerProfile();
       const u = res.data;
 
-      setProfile({ name: u.name, headline: u.headline, location: u.location, photoUrl: u.photoUrl });
+      setProfile({
+        name: u.name,
+        headline: u.headline,
+        location: u.location,
+        photoUrl: u.photoUrl,
+      });
       setAbout(u.about);
       setSkills(u.skills || []);
       setExperience(u.experiences || []);
@@ -70,23 +91,26 @@ export default function JobSeekerDashboard() {
       setCertifications(u.certifications || []);
       setResumeUrl(u.resumeUrl);
       setResumeStatus(u.resumeUrl ? "Uploaded" : "No resume uploaded");
+    } catch (e) {
+      console.error("Failed to load profile", e);
     } finally {
       setLoading(false);
     }
   }
 
   const sendUpdate = async (patch) => {
-  try {
-    await updateJobSeekerProfile(patch);
-    await loadProfile();   // refresh UI
-  } catch (err) {
-    console.error(err);
-    alert("Update failed");
+    try {
+      await updateJobSeekerProfile(patch);
+      await loadProfile(); // refresh UI
+    } catch (err) {
+      console.error(err);
+      alert("Update failed");
+    }
+  };
+
+  if (loading) {
+    return <div className="p-6 text-center">Loading...</div>;
   }
-};
-
-
-  if (loading) return <div className="p-6 text-center">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -96,33 +120,88 @@ export default function JobSeekerDashboard() {
             <div className="w-8 h-8 rounded-md bg-indigo-600 flex items-center justify-center">
               <span className="text-xs font-bold text-white">JD</span>
             </div>
-            <span className="text-lg font-semibold text-slate-900">JobPortal</span>
+            <span className="text-lg font-semibold text-slate-900">
+              JobPortal
+            </span>
           </div>
 
           <nav className="hidden md:flex items-center gap-6 text-sm">
-            <button className="text-slate-600 hover:text-indigo-600" onClick={() => navigate("/home/jobseeker")}>Home</button>
-            <button className="text-slate-600 hover:text-indigo-600" onClick={() => navigate("/jobs")}>Find Jobs</button>
+            <button
+              className="text-slate-600 hover:text-indigo-600"
+              onClick={() => navigate("/home/jobseeker")}
+            >
+              Home
+            </button>
+            <button
+              className="text-slate-600 hover:text-indigo-600"
+              onClick={() => navigate("/jobs")}
+            >
+              Find Jobs
+            </button>
           </nav>
 
-          <img src={profile.photoUrl} className="w-9 h-9 rounded-full object-cover" />
+          {profile.photoUrl && (
+            <img
+              src={profile.photoUrl}
+              className="w-9 h-9 rounded-full object-cover"
+              alt="Profile"
+            />
+          )}
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-2 md:px-4 py-4 md:py-6 flex gap-4">
         <div className="flex-1 space-y-4">
-          <ProfileHeader profile={profile} onEdit={() => openModal(setOpenProfileModal)} />
-          <ResumeUpload resumeStatus={resumeStatus} onOpen={() => openModal(setOpenResumeModal)} />
-          <AboutSection about={about} onEdit={() => openModal(setOpenAboutModal)} />
-          <ExperienceSection list={experience} onAdd={() => openModal(setOpenExperienceModal)} onEdit={() => openModal(setOpenExperienceModal)} />
-          <ProjectsSection list={projects} onAdd={() => openModal(setOpenProjectModal)} onEdit={() => openModal(setOpenProjectModal)} />
-          <SkillsSection skills={skills} onAdd={() => openModal(setOpenSkillsModal)} onEdit={() => openModal(setOpenSkillsModal)} />
-          <EducationSection list={education} onAdd={() => openModal(setOpenEducationModal)} onEdit={() => openModal(setOpenEducationModal)} />
-          <CertificationsSection list={certifications} onAdd={() => openModal(setOpenCertModal)} onEdit={() => openModal(setOpenCertModal)} />
+          <ProfileHeader
+            profile={profile}
+            onEdit={() => openModal(setOpenProfileModal)}
+          />
+          <ResumeUpload
+            resumeStatus={resumeStatus}
+            onOpen={() => openModal(setOpenResumeModal)}
+          />
+          <AboutSection
+            about={about}
+            onEdit={() => openModal(setOpenAboutModal)}
+          />
+          <ExperienceSection
+  list={experience}
+  onAdd={() => {
+    setEditingExpIndex(null);
+    openModal(setOpenExperienceModal);
+  }}
+  onEditItem={(index) => {
+    setEditingExpIndex(index);
+    openModal(setOpenExperienceModal);
+  }}
+/>
+          <ProjectsSection
+            list={projects}
+            onAdd={() => openModal(setOpenProjectModal)}
+            onEdit={() => openModal(setOpenProjectModal)}
+          />
+          <SkillsSection
+            skills={skills}
+            onAdd={() => openModal(setOpenSkillsModal)}
+            onEdit={() => openModal(setOpenSkillsModal)}
+          />
+          <EducationSection
+            list={education}
+            onAdd={() => openModal(setOpenEducationModal)}
+            onEdit={() => openModal(setOpenEducationModal)}
+          />
+          <CertificationsSection
+            list={certifications}
+            onAdd={() => openModal(setOpenCertModal)}
+            onEdit={() => openModal(setOpenCertModal)}
+          />
         </div>
 
         <aside className="hidden lg:block w-64 space-y-4">
           <section className="bg-white rounded-lg border border-slate-200 p-3">
-            <h3 className="text-xs font-semibold text-slate-900 mb-2">Profile completeness</h3>
+            <h3 className="text-xs font-semibold text-slate-900 mb-2">
+              Profile completeness
+            </h3>
             <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
               <div className="h-full w-2/3 bg-indigo-500" />
             </div>
@@ -134,14 +213,78 @@ export default function JobSeekerDashboard() {
       </main>
 
       {/* MODALS */}
-      <EditProfileModal open={openProfileModal} initial={profile} onClose={() => closeModal(setOpenProfileModal)} onSave={async (data) => { await sendUpdate(data); }} />
-      <EditAboutModal open={openAboutModal} initialValue={about} onClose={() => closeModal(setOpenAboutModal)} onSave={async (val) => { await sendUpdate({ about: val }); }} />
-      <EditExperienceModal open={openExperienceModal} onClose={() => closeModal(setOpenExperienceModal)} onSave={async (item) => { await sendUpdate({ experiences: [...experience, item] }); }} />
-      <EditProjectModal open={openProjectModal} onClose={() => closeModal(setOpenProjectModal)} onSave={async (item) => { await sendUpdate({ projects: [...projects, item] }); }} />
-      <EditSkillsModal open={openSkillsModal} initial={skills} onClose={() => closeModal(setOpenSkillsModal)} onSave={async (items) => { await sendUpdate({ skills: items }); }} />
-      <EditEducationModal open={openEducationModal} onClose={() => closeModal(setOpenEducationModal)} onSave={async (item) => { await sendUpdate({ education: [...education, item] }); }} />
-      <EditCertificationModal open={openCertModal} onClose={() => closeModal(setOpenCertModal)} onSave={async (item) => { await sendUpdate({ certifications: [...certifications, item] }); }} />
-      <UploadResumeModal open={openResumeModal} onClose={() => closeModal(setOpenResumeModal)} onSave={async (fileUrl) => { await sendUpdate({ resumeUrl: fileUrl }); }} />
+      <EditProfileModal
+        open={openProfileModal}
+        initial={profile}
+        onClose={() => closeModal(setOpenProfileModal)}
+        onSave={async (data) => {
+          await sendUpdate(data);
+        }}
+      />
+      <EditAboutModal
+        open={openAboutModal}
+        initialValue={about}
+        onClose={() => closeModal(setOpenAboutModal)}
+        onSave={async (val) => {
+          await sendUpdate({ about: val });
+        }}
+      />
+      <EditExperienceModal
+  open={openExperienceModal}
+  initialItem={
+    editingExpIndex !== null ? experience[editingExpIndex] : null
+  }
+  onClose={() => closeModal(setOpenExperienceModal)}
+  onSave={async (item) => {
+    if (editingExpIndex === null) {
+      const updated = [...experience, item];
+      setExperience(updated);
+      await sendUpdate({ experiences: updated });
+    } else {
+      const updated = experience.map((exp, idx) =>
+        idx === editingExpIndex ? { ...exp, ...item } : exp
+      );
+      setExperience(updated);
+      await sendUpdate({ experiences: updated });
+    }
+  }}
+/>
+      <EditProjectModal
+        open={openProjectModal}
+        onClose={() => closeModal(setOpenProjectModal)}
+        onSave={async (item) => {
+          await sendUpdate({ projects: [...projects, item] });
+        }}
+      />
+      <EditSkillsModal
+        open={openSkillsModal}
+        initial={skills}
+        onClose={() => closeModal(setOpenSkillsModal)}
+        onSave={async (items) => {
+          await sendUpdate({ skills: items });
+        }}
+      />
+      <EditEducationModal
+        open={openEducationModal}
+        onClose={() => closeModal(setOpenEducationModal)}
+        onSave={async (item) => {
+          await sendUpdate({ education: [...education, item] });
+        }}
+      />
+      <EditCertificationModal
+        open={openCertModal}
+        onClose={() => closeModal(setOpenCertModal)}
+        onSave={async (item) => {
+          await sendUpdate({ certifications: [...certifications, item] });
+        }}
+      />
+      <UploadResumeModal
+        open={openResumeModal}
+        onClose={() => closeModal(setOpenResumeModal)}
+        onSave={async (fileUrl) => {
+          await sendUpdate({ resumeUrl: fileUrl });
+        }}
+      />
     </div>
   );
 }

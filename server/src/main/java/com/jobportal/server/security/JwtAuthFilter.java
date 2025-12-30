@@ -1,3 +1,4 @@
+// server/src/main/java/com/jobportal/server/security/JwtAuthFilter.java
 package com.jobportal.server.security;
 
 import jakarta.servlet.FilterChain;
@@ -46,11 +47,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(auth);
                 System.out.println("TOKEN ROLE = " + role);
-System.out.println("GRANTED = ROLE_" + role);
-System.out.println("AUTH USER = " + email);
-System.out.println("SPRING ROLE = ROLE_" + role);
-
-
+                System.out.println("GRANTED = ROLE_" + role);
+                System.out.println("AUTH USER = " + email);
+                System.out.println("SPRING ROLE = ROLE_" + role);
 
             } catch (Exception e) {
                 SecurityContextHolder.clearContext();

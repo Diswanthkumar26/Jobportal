@@ -1,7 +1,7 @@
+// server/src/main/java/com/jobportal/server/entity/User.java
 package com.jobportal.server.entity;
 
 import jakarta.persistence.*;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.jobportal.server.entity.profile.*;
 import java.util.ArrayList;
@@ -29,40 +29,35 @@ public class User {
     @Column(nullable = false)
     private boolean profileCompleted = false;
 
-    // ---------- Profile Fields ----------
     @Column(columnDefinition = "TEXT")
     private String about;
     private String headline;
-private String location;
-private String photoUrl;
+    private String location;
+    private String photoUrl;
 
     @ElementCollection
-       @CollectionTable(name = "user_skills", joinColumns = @JoinColumn(name = "user_id"))
+    @CollectionTable(name = "user_skills", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "skill")
     private List<String> skills = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-@JsonIgnoreProperties({"user"})
-private List<Experience> experiences = new ArrayList<>();
+    @JsonIgnoreProperties({"user"})
+    private List<Experience> experiences = new ArrayList<>();
 
-@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-@JsonIgnoreProperties({"user"})
-private List<Project> projects = new ArrayList<>();
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnoreProperties({"user"})
+    private List<Project> projects = new ArrayList<>();
 
-@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-@JsonIgnoreProperties({"user"})
-private List<Education> education = new ArrayList<>();
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnoreProperties({"user"})
+    private List<Education> education = new ArrayList<>();
 
-@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-@JsonIgnoreProperties({"user"})
-private List<Certification> certifications = new ArrayList<>();
-
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnoreProperties({"user"})
+    private List<Certification> certifications = new ArrayList<>();
 
     private String resumeUrl;
-  
 
-
-    // ---------- GETTERS / SETTERS ----------
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -105,12 +100,11 @@ private List<Certification> certifications = new ArrayList<>();
     public void setResumeUrl(String resumeUrl) { this.resumeUrl = resumeUrl; }
 
     public String getHeadline() { return headline; }
-public void setHeadline(String headline) { this.headline = headline; }
+    public void setHeadline(String headline) { this.headline = headline; }
 
-public String getLocation() { return location; }
-public void setLocation(String location) { this.location = location; }
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
 
-public String getPhotoUrl() { return photoUrl; }
-public void setPhotoUrl(String photoUrl) { this.photoUrl = photoUrl; }
-
+    public String getPhotoUrl() { return photoUrl; }
+    public void setPhotoUrl(String photoUrl) { this.photoUrl = photoUrl; }
 }

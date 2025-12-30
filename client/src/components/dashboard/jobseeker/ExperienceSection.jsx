@@ -1,42 +1,70 @@
-import React from "react";
+// src/components/dashboard/jobseeker/ExperienceSection.jsx
+import { FiPlus, FiEdit2 } from "react-icons/fi";
 
-export default function ExperienceSection({ list = [], onAdd, onEdit }) {
+export default function ExperienceSection({ list, onAdd, onEditItem }) {
+  const hasData = list && list.length > 0;
+
   return (
-    <section className="bg-white rounded-lg border border-slate-200">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-        <h2 className="text-sm font-semibold text-slate-900">Experience</h2>
-        <div className="flex gap-3">
-          <button onClick={onAdd} className="text-xs text-indigo-600 hover:underline">
-            + Add
-          </button>
-          <button onClick={onEdit} className="text-xs text-indigo-600 hover:underline">
-            Edit
+    <section className="bg-white rounded-lg border border-slate-200 p-4 mb-3">
+      {/* TOP BAR */}
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-base font-semibold text-slate-900">
+          Experience
+        </h2>
+
+        <div className="flex items-center gap-3">
+          {/* Optional global edit icon */}
+          {/* {hasData && (
+            <button
+              className="p-1 rounded-full hover:bg-slate-100"
+              onClick={() => onEditItem(0)}
+            >
+              <FiEdit2 className="w-4 h-4 text-slate-600" />
+            </button>
+          )} */}
+
+          {/* Add icon */}
+          <button
+            className="p-1 rounded-full hover:bg-slate-100"
+            onClick={onAdd}
+          >
+            <FiPlus className="w-5 h-5 text-slate-700" />
           </button>
         </div>
       </div>
 
-      {/* Body */}
-      <div className="px-4 py-3 space-y-4">
-        {list.length === 0 && (
-          <p className="text-xs text-slate-500">No experience added yet.</p>
-        )}
+      {/* LIST */}
+      {hasData ? (
+        <div className="divide-y divide-slate-200">
+          {list.map((exp, index) => (
+            <div key={exp.id ?? index} className="py-3 flex items-start">
+              <div className="flex-1">
+                <div className="font-semibold text-slate-900">
+                  {exp.role}
+                </div>
+                <div className="text-sm text-slate-700">
+                  {exp.company}
+                </div>
+                <div className="text-xs text-slate-500">
+                  {exp.period} · {exp.location}
+                </div>
+                <div className="mt-1 text-sm text-slate-700">
+                  {exp.description}
+                </div>
+              </div>
 
-        {list.map((exp) => (
-          <div key={exp.id} className="text-sm">
-            <p className="font-semibold text-slate-900">{exp.role}</p>
-            <p className="text-slate-700">{exp.company}</p>
-            <p className="text-xs text-slate-500">
-              {exp.period} · {exp.location}
-            </p>
-            {exp.description && (
-              <p className="text-xs text-slate-600 mt-1">
-                {exp.description}
-              </p>
-            )}
-          </div>
-        ))}
-      </div>
+              <button
+                className="ml-3 mt-1 p-1 rounded-full hover:bg-slate-100"
+                onClick={() => onEditItem(index)}
+              >
+                <FiEdit2 className="w-4 h-4 text-slate-600" />
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-slate-500">No experience added yet.</p>
+      )}
     </section>
   );
 }
