@@ -24,11 +24,21 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
+        String path = request.getRequestURI();
+
+        // 1) allow /api/auth/** without JWT
+        if (path.startsWith("/api/auth/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // 2) allow CORS preflight
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             filterChain.doFilter(request, response);
             return;
         }
 
+        // 3) for all other paths, try to authenticate via JWT
         String header = request.getHeader("Authorization");
 
         if (header != null && header.startsWith("Bearer ")) {
@@ -36,7 +46,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             try {
                 String email = JwtUtil.extractUsername(token);
-                String role = JwtUtil.extractRole(token);
+                String role = JwtUtil.extractRole(token); // JOBSEEKER/EMPLOYER
 
                 UsernamePasswordAuthenticationToken auth =
                         new UsernamePasswordAuthenticationToken(
@@ -46,10 +56,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         );
 
                 SecurityContextHolder.getContext().setAuthentication(auth);
-                System.out.println("TOKEN ROLE = " + role);
-                System.out.println("GRANTED = ROLE_" + role);
-                System.out.println("AUTH USER = " + email);
-                System.out.println("SPRING ROLE = ROLE_" + role);
 
             } catch (Exception e) {
                 SecurityContextHolder.clearContext();

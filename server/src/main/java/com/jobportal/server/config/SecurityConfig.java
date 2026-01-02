@@ -1,3 +1,4 @@
+
 package com.jobportal.server.config;
 
 import com.jobportal.server.security.JwtAuthFilter;
@@ -37,12 +38,9 @@ public class SecurityConfig {
     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
     .requestMatchers("/api/auth/**").permitAll()
 
-    // .requestMatchers(HttpMethod.GET, "/api/profile/job-seeker").hasRole("JOBSEEKER") 
     .requestMatchers("/api/profile/job-seeker", "/api/profile/job-seeker/**")
-        .hasRole("JOBSEEKER")
-
+                .authenticated()
     .requestMatchers("/api/profile/employer/**").hasRole("EMPLOYER")
-
     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
     .requestMatchers("/api/users/**").authenticated()
     .anyRequest().authenticated()

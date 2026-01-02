@@ -1,8 +1,9 @@
 // server/src/main/java/com/jobportal/server/dto/UpdateJobSeekerRequest.java
 package com.jobportal.server.dto;
 
-import com.jobportal.server.entity.User;
 import com.jobportal.server.entity.profile.*;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.util.List;
@@ -10,31 +11,32 @@ import java.util.List;
 @Data
 public class UpdateJobSeekerRequest {
 
+    @Size(max = 2000, message = "About section must be at most 2000 characters")
     private String about;
-    private List<String> skills;
-    private List<Experience> experiences;
-    private List<Project> projects;
-    private List<Education> education;
-    private List<Certification> certifications;
+
+    private List<@Size(min = 1, max = 50, message = "Skill must be between 1 and 50 characters") String> skills;
+
+    @Size(max = 2048, message = "Resume URL is too long")
     private String resumeUrl;
 
+    @Size(max = 100, message = "Headline must be at most 100 characters")
     private String headline;
+
+    @Size(max = 100, message = "Location must be at most 100 characters")
     private String location;
+
+    @Size(max = 2048, message = "Photo URL is too long")
     private String photoUrl;
 
-    public static UpdateJobSeekerRequest fromUser(User u) {
-        UpdateJobSeekerRequest dto = new UpdateJobSeekerRequest();
-        dto.setAbout(u.getAbout());
-        dto.setSkills(u.getSkills());
-        dto.setResumeUrl(u.getResumeUrl());
-        dto.setHeadline(u.getHeadline());
-        dto.setLocation(u.getLocation());
-        dto.setPhotoUrl(u.getPhotoUrl());
+    @Valid
+    private List<@Valid Experience> experiences;
 
-        dto.setExperiences(u.getExperiences());
-        dto.setProjects(u.getProjects());
-        dto.setEducation(u.getEducation());
-        dto.setCertifications(u.getCertifications());
-        return dto;
-    }
+    @Valid
+    private List<@Valid Project> projects;
+
+    @Valid
+    private List<@Valid Education> education;
+
+    @Valid
+    private List<@Valid Certification> certifications;
 }

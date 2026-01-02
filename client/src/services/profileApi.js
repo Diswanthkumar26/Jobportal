@@ -1,7 +1,10 @@
-// client/src/services/profileApi.js
+// src/api/profileApi.js
 import api from "./api";
 
-export const getJobSeekerProfile = () => api.get("/profile/job-seeker");
+export const getJobSeekerProfile = () => {
+  return api.get("/profile/job-seeker");
+};
 
-export const updateJobSeekerProfile = (data) =>
-  api.put("/profile/job-seeker", data);
+export const updateJobSeekerProfile = (data) => {
+  return api.put("/profile/job-seeker", data);
+};

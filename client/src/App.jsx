@@ -16,7 +16,7 @@ import EmployerHome from "./pages/home/EmployerHome";
 import PrivateRoute from "./routes/PrivateRoute";
 
 import EditFullProfile from "./pages/profile/EditFullProfile";
-
+import FindJobs from "./pages/jobs/FindJobs"
 export default function App() {
   return (
     <BrowserRouter>
@@ -96,7 +96,7 @@ export default function App() {
 
         <Route path="/profile/edit" element={<EditFullProfile />} />
         <Route path="/profile/edit" element={<EditFullProfile />} />
-
+<Route path="/jobs" element={<FindJobs />} />
       </Routes>
     </BrowserRouter>
   );

@@ -1,70 +1,75 @@
-// src/components/dashboard/jobseeker/EducationSection.jsx
-import { FiPlus, FiEdit2 } from "react-icons/fi";
+// client/src/components/dashboard/jobseeker/EducationSection.jsx
+import React from "react";
+import {
+  PlusIcon,
+  PencilSquareIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 
-export default function EducationSection({ list, onAdd, onEditItem }) {
-  const hasData = list && list.length > 0;
-
+export default function EducationSection({ list, onAdd, onEditItem, onRemoveItem }) {
   return (
-    <section className="bg-white rounded-lg border border-slate-200 p-4 mb-3">
-      {/* TOP BAR */}
+    <section className="bg-white rounded-lg border border-slate-200 p-4">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-base font-semibold text-slate-900">
-          Education
-        </h2>
-
-        <div className="flex items-center gap-3">
-          {/* {hasData && (
-            <button
-              className="p-1 rounded-full hover:bg-slate-100"
-              onClick={() => onEditItem(0)}
-            >
-              <FiEdit2 className="w-4 h-4 text-slate-600" />
-            </button>
-          )} */}
+        <h2 className="text-sm font-semibold text-slate-900">Education</h2>
           <button
-            className="p-1 rounded-full hover:bg-slate-100"
-            onClick={onAdd}
-          >
-            <FiPlus className="w-5 h-5 text-slate-700" />
-          </button>
-        </div>
+          type="button"
+          onClick={onAdd}
+          className="inline-flex items-center justify-center rounded-md text-black"
+          title="Add"
+        >
+          <PlusIcon className="h-4 w-4" />
+        </button>
+
       </div>
 
-      {/* LIST */}
-      {hasData ? (
-        <div className="divide-y divide-slate-200">
-          {list.map((ed, index) => (
-            <div key={ed.id ?? index} className="py-3 flex items-start">
-              <div className="flex-1">
-                <div className="font-semibold text-slate-900">
-                  {ed.degree || ed.course || ""}
-                </div>
-                <div className="text-sm text-slate-700">
-                  {ed.institution || ed.college || ""}
-                </div>
-                <div className="text-xs text-slate-500">
-                  {ed.period || ed.year || ""}{" "}
-                  {ed.location ? `· ${ed.location}` : ""}
-                </div>
-                <div className="mt-1 text-sm text-slate-700">
-                  {ed.description}
-                </div>
-              </div>
+      <div className="space-y-2">
+        {list.length === 0 && (
+          <p className="text-xs text-slate-500">No education added yet.</p>
+        )}
 
+        {list.map((ed, index) => (
+          <div
+            key={index}
+            className="flex items-start justify-between rounded-lg border border-slate-200 bg-white px-4 py-3"
+          >
+            <div>
+              <h3 className="text-sm font-semibold text-slate-900">
+                {ed.degree}
+              </h3>
+              <p className="text-xs text-slate-500">
+                {ed.school} · {ed.location}
+              </p>
+              {ed.period && (
+                <p className="text-xs text-slate-400">{ed.period}</p>
+              )}
+              {ed.description && (
+                <p className="mt-1 text-xs text-slate-600">
+                  {ed.description}
+                </p>
+              )}
+            </div>
+
+            <div className="flex items-center gap-1">
               <button
-                className="ml-3 mt-1 p-1 rounded-full hover:bg-slate-100"
-                onClick={() => onEditItem(index)}
+                type="button"
+                onClick={() => onRemoveItem(index)}
+                className="inline-flex items-center justify-center rounded-md p-1.5 text-red-500 hover:bg-red-50"
+                title="Remove"
               >
-                <FiEdit2 className="w-4 h-4 text-slate-600" />
+                <TrashIcon className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => onEditItem(index)}
+                className="inline-flex items-center justify-center rounded-md p-1.5 text-slate-600 hover:bg-slate-100"
+                title="Edit"
+              >
+                <PencilSquareIcon className="h-4 w-4" />
               </button>
             </div>
-          ))}
-        </div>
-      ) : (
-        <p className="text-sm text-slate-500">
-          No education added yet.
-        </p>
-      )}
+          </div>
+        ))}
+      </div>
     </section>
   );
 }

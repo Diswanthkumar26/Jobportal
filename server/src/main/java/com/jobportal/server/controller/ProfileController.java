@@ -21,9 +21,10 @@ public class ProfileController {
         return profileService.findByEmail(email);
     }
 
-    @PutMapping(consumes = "application/json")
+    @PutMapping
     public User update(@RequestBody UpdateJobSeekerRequest req,
                        Authentication authentication) {
+
         String email = (String) authentication.getPrincipal();
         User u = profileService.findByEmail(email);
         return profileService.updateJobSeekerProfile(u.getId(), req);

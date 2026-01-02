@@ -10,10 +10,10 @@ import java.security.Key;
 import java.util.Date;
 
 public class JwtUtil {
+
     private static final String SECRET = "THIS_IS_A_SECRET_KEY_FOR_JOB_PORTAL_123456";
     private static final Key KEY = Keys.hmacShaKeyFor(SECRET.getBytes());
-
-    private static final long EXPIRATION = 1000 * 60 * 60 * 24;
+    private static final long EXPIRATION = 1000L * 60 * 60 * 24; // 24h
 
     public static String generateToken(String email, String role) {
         return Jwts.builder()

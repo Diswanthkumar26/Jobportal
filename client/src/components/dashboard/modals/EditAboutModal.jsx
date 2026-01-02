@@ -1,56 +1,65 @@
-
+// src/components/dashboard/modals/EditAboutModal.jsx
 import React, { useEffect, useState } from "react";
 
 export default function EditAboutModal({ open, onClose, onSave, initialValue }) {
   const [value, setValue] = useState("");
+  const [error, setError] = useState("");
 
-  
   useEffect(() => {
-    if (open) setValue(initialValue || "");
-  }, [open, initialValue]);
-
-  // Lock scroll on open
-  // scroll lock + click outside close + sync text
-useEffect(() => {
-  if (open) document.body.style.overflow = "hidden";
-  else document.body.style.overflow = "auto";
-  return () => (document.body.style.overflow = "auto");
-}, [open]);
-
+    setValue(initialValue || "");
+    setError("");
+  }, [initialValue, open]);
 
   if (!open) return null;
 
+  const handleSave = () => {
+    const v = value.trim();
+    if (!v) {
+      setError("About section cannot be empty");
+      return;
+    }
+    if (v.length < 20) {
+      setError("Write at least 20 characters");
+      return;
+    }
+    onSave(v);
+    onClose();
+  };
+
   return (
     <div
-      className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[9999]"
-      onClick={onClose} // click backdrop closes modal
+      className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[999] flex items-center justify-center"
+      onClick={onClose}
     >
       <div
-        className="bg-white w-[480px] rounded-lg p-6 shadow-xl"
-        onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white rounded-lg w-[520px] p-6 shadow-lg"
       >
         <h2 className="text-lg font-semibold mb-4">Edit About</h2>
 
         <textarea
-          className="w-full border p-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          rows={6}
+          className={`w-full border p-2 rounded text-sm min-h-[140px] ${
+            error ? "border-red-400" : "border-slate-200"
+          }`}
+          placeholder="Describe your experience, skills and what kind of roles you are looking for."
           value={value}
           onChange={(e) => setValue(e.target.value)}
         />
 
-        <div className="flex justify-end gap-3 mt-5">
+        {error && (
+          <p className="mt-1 text-[11px] text-red-500">{error}</p>
+        )}
+
+        <div className="mt-5 flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm rounded bg-gray-200 hover:bg-gray-300"
+            className="px-4 py-2 text-sm rounded bg-gray-100"
           >
             Cancel
           </button>
           <button
-            onClick={() => {
-              onSave(value);
-              onClose();
-            }}
-            className="px-4 py-2 text-sm rounded bg-indigo-600 text-white hover:bg-indigo-700"
+            onClick={handleSave}
+            className="px-4 py-2 text-sm rounded bg-indigo-600 text-white"
           >
             Save
           </button>

@@ -1,7 +1,10 @@
-// client/src/pages/dashboard/JobSeekerDashboard.jsx
+// src/pages/dashboard/JobSeekerDashboard.jsx
 import React, { useState, useEffect } from "react";
-import { getJobSeekerProfile, updateJobSeekerProfile } from "../../services/profileApi";
 import { useNavigate } from "react-router-dom";
+import {
+  getJobSeekerProfile,
+  updateJobSeekerProfile,
+} from "../../services/profileApi";
 
 import ProfileHeader from "../../components/dashboard/jobseeker/ProfileHeader";
 import ResumeUpload from "../../components/dashboard/jobseeker/ResumeUpload";
@@ -30,6 +33,12 @@ export default function JobSeekerDashboard() {
     headline: "",
     location: "",
     photoUrl: "",
+    company: "",
+    experienceText: "",
+    ctc: "",
+    phone: "",
+    email: "",
+    noticePeriod: "",
   });
 
   const [about, setAbout] = useState("");
@@ -41,71 +50,98 @@ export default function JobSeekerDashboard() {
   const [resumeStatus, setResumeStatus] = useState("No resume uploaded");
   const [resumeUrl, setResumeUrl] = useState(null);
 
-  // Modals
+  // modal state
   const [openProfileModal, setOpenProfileModal] = useState(false);
   const [openAboutModal, setOpenAboutModal] = useState(false);
-  const [openExperienceModal, setOpenExperienceModal] = useState(false); 
-  const [editingExpIndex, setEditingExpIndex] = useState(null); 
+  const [openExperienceModal, setOpenExperienceModal] = useState(false);
   const [openProjectModal, setOpenProjectModal] = useState(false);
   const [openSkillsModal, setOpenSkillsModal] = useState(false);
   const [openEducationModal, setOpenEducationModal] = useState(false);
   const [openCertModal, setOpenCertModal] = useState(false);
   const [openResumeModal, setOpenResumeModal] = useState(false);
 
-  const lockBodyScroll = (lock) => {
-    document.body.style.overflow = lock ? "hidden" : "auto";
-  };
+  // editing indexes
+  const [editingExpIndex, setEditingExpIndex] = useState(null);
+  const [editingProjectIndex, setEditingProjectIndex] = useState(null);
+  const [editingEduIndex, setEditingEduIndex] = useState(null);
+  const [editingCertIndex, setEditingCertIndex] = useState(null);
 
-  const openModal = (setter) => {
-    setter(true);
-    lockBodyScroll(true);
-  };
-
-  const closeModal = (setter) => {
-    setter(false);
-    lockBodyScroll(false);
-  };
+  const openModal = (setter) => setter(true);
+  const closeModal = (setter) => setter(false);
 
   useEffect(() => {
     loadProfile();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function loadProfile() {
+  const loadProfile = async () => {
     setLoading(true);
     try {
       const res = await getJobSeekerProfile();
       const u = res.data;
-
       setProfile({
         name: u.name,
         headline: u.headline,
         location: u.location,
         photoUrl: u.photoUrl,
+        company: u.company,
+        experienceText: u.experienceText,
+        ctc: u.ctc,
+        phone: u.phone,
+        email: u.email,
+        noticePeriod: u.noticePeriod,
       });
-      setAbout(u.about);
+      setAbout(u.about || "");
       setSkills(u.skills || []);
       setExperience(u.experiences || []);
       setProjects(u.projects || []);
       setEducation(u.education || []);
       setCertifications(u.certifications || []);
-      setResumeUrl(u.resumeUrl);
+      setResumeUrl(u.resumeUrl || null);
       setResumeStatus(u.resumeUrl ? "Uploaded" : "No resume uploaded");
-    } catch (e) {
-      console.error("Failed to load profile", e);
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   const sendUpdate = async (patch) => {
     try {
       await updateJobSeekerProfile(patch);
-      await loadProfile(); // refresh UI
+      await loadProfile();
     } catch (err) {
       console.error(err);
       alert("Update failed");
     }
+  };
+
+  // remove handlers
+  const handleRemoveExperience = async (index) => {
+    const updated = experience.filter((_, i) => i !== index);
+    setExperience(updated);
+    await sendUpdate({ experiences: updated });
+  };
+
+  const handleRemoveProject = async (index) => {
+    const updated = projects.filter((_, i) => i !== index);
+    setProjects(updated);
+    await sendUpdate({ projects: updated });
+  };
+
+  const handleRemoveEducation = async (index) => {
+    const updated = education.filter((_, i) => i !== index);
+    setEducation(updated);
+    await sendUpdate({ education: updated });
+  };
+
+  const handleRemoveCertification = async (index) => {
+    const updated = certifications.filter((_, i) => i !== index);
+    setCertifications(updated);
+    await sendUpdate({ certifications: updated });
+  };
+
+  const handleRemoveSkill = async (index) => {
+    const updated = skills.filter((_, i) => i !== index);
+    setSkills(updated);
+    await sendUpdate({ skills: updated });
   };
 
   if (loading) {
@@ -114,6 +150,7 @@ export default function JobSeekerDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-100">
+      {/* HEADER BAR */}
       <header className="bg-white border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -150,50 +187,82 @@ export default function JobSeekerDashboard() {
         </div>
       </header>
 
+      {/* MAIN CONTENT */}
       <main className="max-w-6xl mx-auto px-2 md:px-4 py-4 md:py-6 flex gap-4">
         <div className="flex-1 space-y-4">
           <ProfileHeader
             profile={profile}
             onEdit={() => openModal(setOpenProfileModal)}
           />
+
           <ResumeUpload
             resumeStatus={resumeStatus}
             onOpen={() => openModal(setOpenResumeModal)}
           />
+
           <AboutSection
             about={about}
             onEdit={() => openModal(setOpenAboutModal)}
+            onAdd={() => openModal(setOpenAboutModal)}
           />
+
           <ExperienceSection
-  list={experience}
-  onAdd={() => {
-    setEditingExpIndex(null);
-    openModal(setOpenExperienceModal);
-  }}
-  onEditItem={(index) => {
-    setEditingExpIndex(index);
-    openModal(setOpenExperienceModal);
-  }}
-/>
+            list={experience}
+            onAdd={() => {
+              setEditingExpIndex(null);
+              openModal(setOpenExperienceModal);
+            }}
+            onEditItem={(index) => {
+              setEditingExpIndex(index);
+              openModal(setOpenExperienceModal);
+            }}
+            onRemoveItem={handleRemoveExperience}
+          />
+
           <ProjectsSection
             list={projects}
-            onAdd={() => openModal(setOpenProjectModal)}
-            onEdit={() => openModal(setOpenProjectModal)}
+            onAdd={() => {
+              setEditingProjectIndex(null);
+              openModal(setOpenProjectModal);
+            }}
+            onEditItem={(index) => {
+              setEditingProjectIndex(index);
+              openModal(setOpenProjectModal);
+            }}
+            onRemoveItem={handleRemoveProject}
           />
+
           <SkillsSection
             skills={skills}
             onAdd={() => openModal(setOpenSkillsModal)}
             onEdit={() => openModal(setOpenSkillsModal)}
+            onRemoveItem={handleRemoveSkill}
           />
+
           <EducationSection
             list={education}
-            onAdd={() => openModal(setOpenEducationModal)}
-            onEdit={() => openModal(setOpenEducationModal)}
+            onAdd={() => {
+              setEditingEduIndex(null);
+              setOpenEducationModal(true);
+            }}
+            onEditItem={(idx) => {
+              setEditingEduIndex(idx);
+              setOpenEducationModal(true);
+            }}
+            onRemoveItem={handleRemoveEducation}
           />
+
           <CertificationsSection
             list={certifications}
-            onAdd={() => openModal(setOpenCertModal)}
-            onEdit={() => openModal(setOpenCertModal)}
+            onAdd={() => {
+              setEditingCertIndex(null);
+              openModal(setOpenCertModal);
+            }}
+            onEditItem={(index) => {
+              setEditingCertIndex(index);
+              openModal(setOpenCertModal);
+            }}
+            onRemoveItem={handleRemoveCertification}
           />
         </div>
 
@@ -213,14 +282,25 @@ export default function JobSeekerDashboard() {
       </main>
 
       {/* MODALS */}
+
       <EditProfileModal
         open={openProfileModal}
         initial={profile}
         onClose={() => closeModal(setOpenProfileModal)}
+        onChangePhoto={(file) => {
+          // implement upload, then:
+          // setProfile(prev => ({ ...prev, photoUrl: uploadedUrl }));
+          // sendUpdate({ photoUrl: uploadedUrl });
+        }}
+        onDeletePhoto={() => {
+          setProfile((prev) => ({ ...prev, photoUrl: null }));
+          // optionally sendUpdate({ photoUrl: null });
+        }}
         onSave={async (data) => {
           await sendUpdate(data);
         }}
       />
+
       <EditAboutModal
         open={openAboutModal}
         initialValue={about}
@@ -229,59 +309,106 @@ export default function JobSeekerDashboard() {
           await sendUpdate({ about: val });
         }}
       />
+
       <EditExperienceModal
-  open={openExperienceModal}
-  initialItem={
-    editingExpIndex !== null ? experience[editingExpIndex] : null
-  }
-  onClose={() => closeModal(setOpenExperienceModal)}
-  onSave={async (item) => {
-    if (editingExpIndex === null) {
-      const updated = [...experience, item];
-      setExperience(updated);
-      await sendUpdate({ experiences: updated });
-    } else {
-      const updated = experience.map((exp, idx) =>
-        idx === editingExpIndex ? { ...exp, ...item } : exp
-      );
-      setExperience(updated);
-      await sendUpdate({ experiences: updated });
-    }
-  }}
-/>
-      <EditProjectModal
-        open={openProjectModal}
-        onClose={() => closeModal(setOpenProjectModal)}
+        open={openExperienceModal}
+        initialItem={
+          editingExpIndex !== null ? experience[editingExpIndex] : null
+        }
+        onClose={() => closeModal(setOpenExperienceModal)}
         onSave={async (item) => {
-          await sendUpdate({ projects: [...projects, item] });
+          if (editingExpIndex === null) {
+            const updated = [...experience, item];
+            setExperience(updated);
+            await sendUpdate({ experiences: updated });
+          } else {
+            const updated = experience.map((exp, idx) =>
+              idx === editingExpIndex ? { ...exp, ...item } : exp
+            );
+            setExperience(updated);
+            await sendUpdate({ experiences: updated });
+          }
         }}
       />
+
+      <EditProjectModal
+        open={openProjectModal}
+        initialItem={
+          editingProjectIndex !== null ? projects[editingProjectIndex] : null
+        }
+        onClose={() => closeModal(setOpenProjectModal)}
+        onSave={async (item) => {
+          if (editingProjectIndex === null) {
+            const updated = [...projects, item];
+            setProjects(updated);
+            await sendUpdate({ projects: updated });
+          } else {
+            const updated = projects.map((p, idx) =>
+              idx === editingProjectIndex ? { ...p, ...item } : p
+            );
+            setProjects(updated);
+            await sendUpdate({ projects: updated });
+          }
+        }}
+      />
+
       <EditSkillsModal
         open={openSkillsModal}
         initial={skills}
         onClose={() => closeModal(setOpenSkillsModal)}
         onSave={async (items) => {
+          setSkills(items);
           await sendUpdate({ skills: items });
         }}
       />
+
       <EditEducationModal
         open={openEducationModal}
-        onClose={() => closeModal(setOpenEducationModal)}
+        initialItem={
+          editingEduIndex !== null ? education[editingEduIndex] : null
+        }
+        onClose={() => setOpenEducationModal(false)}
         onSave={async (item) => {
-          await sendUpdate({ education: [...education, item] });
+          if (editingEduIndex === null) {
+            const updated = [...education, item];
+            setEducation(updated);
+            await sendUpdate({ education: updated });
+          } else {
+            const updated = education.map((ed, idx) =>
+              idx === editingEduIndex ? { ...ed, ...item } : ed
+            );
+            setEducation(updated);
+            await sendUpdate({ education: updated });
+          }
         }}
       />
+
       <EditCertificationModal
         open={openCertModal}
+        initialItem={
+          editingCertIndex !== null ? certifications[editingCertIndex] : null
+        }
         onClose={() => closeModal(setOpenCertModal)}
         onSave={async (item) => {
-          await sendUpdate({ certifications: [...certifications, item] });
+          if (editingCertIndex === null) {
+            const updated = [...certifications, item];
+            setCertifications(updated);
+            await sendUpdate({ certifications: updated });
+          } else {
+            const updated = certifications.map((c, idx) =>
+              idx === editingCertIndex ? { ...c, ...item } : c
+            );
+            setCertifications(updated);
+            await sendUpdate({ certifications: updated });
+          }
         }}
       />
+
       <UploadResumeModal
         open={openResumeModal}
         onClose={() => closeModal(setOpenResumeModal)}
         onSave={async (fileUrl) => {
+          setResumeUrl(fileUrl);
           await sendUpdate({ resumeUrl: fileUrl });
         }}
       />

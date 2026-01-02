@@ -1,45 +1,54 @@
-// SkillsSection.jsx
-import { FiPlus, FiEdit2 } from "react-icons/fi";
+// client/src/components/dashboard/jobseeker/SkillsSection.jsx
+import React from "react";
+import { PlusIcon, PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
 
-export default function SkillsSection({ skills, onAdd, onEdit }) {
-  const hasData = skills && skills.length > 0;
-
+export default function SkillsSection({ skills, onAdd, onEdit, onRemoveItem }) {
   return (
-    <section className="bg-white rounded-lg border border-slate-200 p-4 mb-3">
+    <section className="bg-white rounded-lg border border-slate-200 p-4">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-base font-semibold text-slate-900">Skills</h2>
-
-        <div className="flex items-center gap-3">
-          {/* {hasData && (
-            <button
-              className="p-1 rounded-full hover:bg-slate-100"
-              onClick={onEdit}
-            >
-              <FiEdit2 className="w-4 h-4 text-slate-600" />
-            </button>
-          )} */}
+        <h2 className="text-sm font-semibold text-slate-900">Skills</h2>
+        <div className="flex items-center gap-2">
           <button
-            className="p-1 rounded-full hover:bg-slate-100"
-            onClick={onAdd}
+  type="button"
+  onClick={onAdd}
+  className="inline-flex items-center justify-center rounded-md text-black"
+  title="Add"
+>
+  <PlusIcon className="h-4 w-4" />
+</button>
+
+          <button
+            type="button"
+            onClick={onEdit}
+            className="inline-flex items-center justify-center rounded-md p-1.5 text-slate-600 hover:bg-slate-100"
+            title="Edit all"
           >
-            <FiPlus className="w-5 h-5 text-slate-700" />
+            <PencilSquareIcon className="h-4 w-4" />
           </button>
         </div>
       </div>
 
-      {hasData ? (
+      {skills.length === 0 ? (
+        <p className="text-xs text-slate-500">No skills added yet.</p>
+      ) : (
         <div className="flex flex-wrap gap-2">
-          {skills.map((s, i) => (
-            <span
-              key={i}
-              className="px-3 py-1 text-xs rounded-full bg-slate-100 text-slate-700"
+          {skills.map((skill, index) => (
+            <div
+              key={index}
+              className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-800"
             >
-              {s}
-            </span>
+              <span>{skill}</span>
+              <button
+                type="button"
+                onClick={() => onRemoveItem(index)}
+                className="text-red-500 hover:text-red-600"
+                title="Remove"
+              >
+                <TrashIcon className="h-3 w-3" />
+              </button>
+            </div>
           ))}
         </div>
-      ) : (
-        <p className="text-sm text-slate-500">No skills added yet.</p>
       )}
     </section>
   );

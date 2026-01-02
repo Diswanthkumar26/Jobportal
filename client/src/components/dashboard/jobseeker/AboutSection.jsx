@@ -1,7 +1,7 @@
-// AboutSection.jsx
-import { FiEdit2 } from "react-icons/fi";
+// src/components/dashboard/jobseeker/AboutSection.jsx
+import { FiEdit2, FiPlus } from "react-icons/fi";
 
-export default function AboutSection({ about, onEdit }) {
+export default function AboutSection({ about, onEdit, onAdd }) {
   const hasData = about && about.trim().length > 0;
 
   return (
@@ -9,12 +9,19 @@ export default function AboutSection({ about, onEdit }) {
       <div className="flex items-center justify-between">
         <h2 className="text-base font-semibold text-slate-900">About</h2>
 
-        {hasData && (
+        {hasData ? (
           <button
             className="p-1 rounded-full hover:bg-slate-100"
             onClick={onEdit}
           >
             <FiEdit2 className="w-4 h-4 text-slate-600" />
+          </button>
+        ) : (
+          <button
+            className="p-1 rounded-full hover:bg-slate-100"
+            onClick={onAdd}
+          >
+            <FiPlus className="w-4 h-4 text-slate-600" />
           </button>
         )}
       </div>
