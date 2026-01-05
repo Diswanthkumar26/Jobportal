@@ -1,381 +1,183 @@
-// import React, { useEffect, useState } from "react";
-// import { useNavigate } from "react-router-dom";
-// import api from "../../services/api";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../../services/api";
+import toast from "react-hot-toast";
 
-// const navLinks = ["Home", "Post Job", "Recruiters", "Candidates", "Pages"];
-
-// export default function EmployerHome() {
-//   const navigate = useNavigate();
-//   const [stats, setStats] = useState({ jobs: 0, applicants: 0 });
-
-//   useEffect(() => {
-//     api.get("/employer/stats")
-//       .then(res => setStats(res.data))
-//       .catch(() => {});
-//   }, []);
-
-//   const logout = () => {
-//     localStorage.removeItem("token");
-//     localStorage.removeItem("role");
-//     navigate("/login");
-//   };
-
-//   return (
-//     <div className="min-h-screen bg-white">
-//       {/* Navbar */}
-//       <header className="border-b border-gray-100">
-//         <div className="max-w-6xl mx-auto flex items-center justify-between py-4 px-4">
-//           <div className="flex items-center space-x-2">
-//             <div className="w-8 h-8 rounded-md bg-indigo-500" />
-//             <span className="font-semibold text-xl">JobBox</span>
-//           </div>
-
-//           <nav className="hidden md:flex items-center space-x-6 text-sm text-gray-600">
-//             {navLinks.map((item, idx) => (
-//               <button
-//                 key={item}
-//                 onClick={() => {
-//                   if (item === "Post Job") navigate("/jobs/post");
-//                   if (item === "Home") navigate("/home/employer");
-//                 }}
-//                 className={`flex items-center space-x-1 ${
-//                   idx === 0 ? "text-indigo-600 font-medium" : ""
-//                 }`}
-//               >
-//                 <span>{item}</span>
-//                 <span className="text-[10px] text-gray-400">&#9662;</span>
-//               </button>
-//             ))}
-
-//             <button
-//               onClick={() => navigate("/home/employer")}
-//               className="text-sm text-gray-700"
-//             >
-//               Dashboard
-//             </button>
-//           </nav>
-
-//           <button
-//             onClick={logout}
-//             className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden"
-//           >
-//             <span className="text-xs font-semibold text-gray-700">Logout</span>
-//           </button>
-//         </div>
-//       </header>
-
-//       {/* Hero */}
-//       <section className="bg-slate-900 text-white">
-//         <div className="max-w-6xl mx-auto px-4 py-16 md:py-24">
-//           <div className="max-w-3xl">
-//             <p className="mb-4 text-sm uppercase tracking-wide text-indigo-300">
-//               The #1 Portal for Employers
-//             </p>
-//             <h1 className="text-3xl md:text-5xl font-bold leading-tight mb-4">
-//               Post Jobs & Find Top Talent Faster
-//             </h1>
-//             <p className="text-sm md:text-base text-slate-200 mb-8">
-//               Manage hiring, publish job openings, track applicants and
-//               interview faster — all in one dashboard.
-//             </p>
-//           </div>
-
-//           {/* Action Buttons */}
-//           <div className="flex flex-wrap gap-4 mt-8">
-//             <button
-//               onClick={() => navigate("/jobs/post")}
-//               className="bg-indigo-500 px-6 py-3 text-sm font-medium rounded-md text-white shadow hover:bg-indigo-600"
-//             >
-//               + Post New Job
-//             </button>
-
-//             <button
-//               onClick={() => navigate("/employer/jobs")}
-//               className="bg-white text-gray-700 px-6 py-3 text-sm rounded-md border shadow hover:bg-gray-50"
-//             >
-//               Manage Jobs
-//             </button>
-
-//             <button
-//               onClick={() => navigate("/employer/applicants")}
-//               className="bg-white text-gray-700 px-6 py-3 text-sm rounded-md border shadow hover:bg-gray-50"
-//             >
-//               View Applicants
-//             </button>
-//           </div>
-
-//           {/* Stats */}
-//           <div className="mt-12 grid grid-cols-2 md:grid-cols-3 gap-6 text-center text-sm">
-//             <div>
-//               <div className="font-semibold text-lg">{stats.jobs}</div>
-//               <div className="text-xs text-slate-300">Jobs Posted</div>
-//             </div>
-//             <div>
-//               <div className="font-semibold text-lg">{stats.applicants}</div>
-//               <div className="text-xs text-slate-300">Applicants Received</div>
-//             </div>
-//             <div>
-//               <div className="font-semibold text-lg">24h</div>
-//               <div className="text-xs text-slate-300">Avg Hiring Time</div>
-//             </div>
-//           </div>
-//         </div>
-//       </section>
-
-//       {/* Bottom quick actions */}
-//       <main className="max-w-6xl mx-auto px-4 py-16">
-//         <h2 className="text-2xl font-semibold mb-4">
-//           Manage Your Hiring
-//         </h2>
-//         <p className="text-gray-500 mb-8 text-sm">
-//           Everything you need to manage talent & recruitment.
-//         </p>
-
-//         <div className="grid md:grid-cols-3 gap-6">
-//           <div
-//             onClick={() => navigate("/jobs/post")}
-//             className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 cursor-pointer hover:shadow-lg transition"
-//           >
-//             <h3 className="font-semibold text-lg mb-2">Post a Job</h3>
-//             <p className="text-sm text-gray-600">
-//               Publish openings and reach qualified talent.
-//             </p>
-//           </div>
-
-//           <div
-//             onClick={() => navigate("/employer/jobs")}
-//             className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 cursor-pointer hover:shadow-lg transition"
-//           >
-//             <h3 className="font-semibold text-lg mb-2">Manage Jobs</h3>
-//             <p className="text-sm text-gray-600">
-//               View posted jobs, update or close roles.
-//             </p>
-//           </div>
-
-//           <div
-//             onClick={() => navigate("/employer/applicants")}
-//             className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 cursor-pointer hover:shadow-lg transition"
-//           >
-//             <h3 className="font-semibold text-lg mb-2">Applicants</h3>
-//             <p className="text-sm text-gray-600">
-//               View candidates who applied for positions.
-//             </p>
-//           </div>
-//         </div>
-//       </main>
-//     </div>
-//   );
-// }
-// src/App.jsx
-const stats = [
-  { label: 'Open Jobs', value: 12 },
-  { label: 'New Applications Today', value: 27 },
-  { label: 'Pending Reviews', value: 9 },
-  { label: 'Upcoming Interviews', value: 4 },
-];
-
-const tasks = [
-  'Review 5 new applications for “Frontend Developer”',
-  'Respond to 3 unread candidate messages',
-  'Schedule 2 interviews for “Senior Backend Engineer”',
-  'Update salary range for “UI/UX Designer” posting',
-];
-
-export default function EmployerHome() {
+function StatCard({ label, value, loading }) {
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      {/* Top navigation */}
-      <header className="flex items-center justify-between px-4 py-3 border-b bg-white">
-        <div className="flex items-center gap-2">
-          <span className="h-8 w-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-semibold">
-            JP
-          </span>
-          <span className="font-semibold">JobPortal</span>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <button className="hidden md:inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm hover:bg-slate-50">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
-            Hiring active
-          </button>
-          <button className="relative h-9 w-9 rounded-full hover:bg-slate-100 flex items-center justify-center">
-            <span className="absolute right-2 top-1 h-2 w-2 rounded-full bg-red-500" />
-            <span className="i-bell" aria-hidden="true">🔔</span>
-          </button>
-          <div className="flex items-center gap-2">
-            <div className="hidden text-right text-sm md:block">
-              <p className="font-medium">Employer</p>
-              <p className="text-xs text-slate-500">Employer</p>
-            </div>
-            <div className="h-9 w-9 rounded-full bg-indigo-100 flex items-center justify-center font-semibold text-indigo-700">
-              A
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Shell: sidebar + main */}
-      <div className="flex min-h-[calc(100vh-56px)]">
-        {/* Sidebar */}
-        <aside className="hidden w-60 border-r bg-white p-4 md:flex md:flex-col">
-          <nav className="space-y-1 text-sm">
-            <SidebarItem active label="Dashboard" />
-            <SidebarItem label="Jobs" />
-            <SidebarItem label="Candidates" />
-            <SidebarItem label="Messages" />
-            <SidebarItem label="Company Profile" />
-            <SidebarItem label="Billing" />
-            <SidebarItem label="Settings" />
-          </nav>
-
-          <div className="mt-auto rounded-lg bg-indigo-50 p-3 text-xs text-slate-700">
-            <p className="font-semibold mb-1">Tips</p>
-            <p>Boost visibility by sponsoring high-priority roles.</p>
-          </div>
-        </aside>
-
-        {/* Mobile sidebar placeholder – you can wire this to a drawer later */}
-        <aside className="fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-white shadow-lg md:hidden hidden">
-          {/* Implement mobile drawer if needed */}
-        </aside>
-
-        {/* Main content */}
-        <main className="flex-1 px-4 py-4 md:px-6 md:py-6">
-          {/* Hero + primary actions */}
-          <section className="mb-6">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-sm text-slate-500">Employer home</p>
-                <h1 className="text-2xl font-semibold tracking-tight">
-                  Good morning, 
-                </h1>
-                <p className="mt-1 text-sm text-slate-500">
-                  Here is an overview of your hiring funnel for today.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <button className="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700">
-                  Post a job
-                </button>
-                <button className="inline-flex items-center rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
-                  View candidates
-                </button>
-              </div>
-            </div>
-          </section>
-
-          {/* Stats strip */}
-          <section className="mb-6">
-            <div className="grid gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100 sm:grid-cols-2 lg:grid-cols-4">
-              {stats.map((stat) => (
-                <div
-                  key={stat.label}
-                  className="flex flex-col justify-between rounded-xl border border-slate-100 bg-slate-50 px-4 py-3"
-                >
-                  <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                    {stat.label}
-                  </p>
-                  <p className="mt-2 text-2xl font-semibold text-slate-900">
-                    {stat.value}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Main grid: activity + placeholder for future charts/cards */}
-          <section className="grid gap-4 lg:grid-cols-3">
-            {/* Activity & tasks */}
-            <div className="lg:col-span-2 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-base font-semibold text-slate-900">
-                  Next actions
-                </h2>
-                <button className="text-xs font-medium text-indigo-600 hover:text-indigo-700">
-                  View all
-                </button>
-              </div>
-
-              <ul className="space-y-3">
-                {tasks.map((task, index) => (
-                  <li
-                    key={index}
-                    className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5"
-                  >
-                    <span className="mt-1 h-2.5 w-2.5 flex-none rounded-full bg-amber-400" />
-                    <div className="text-sm text-slate-700">
-                      {task}
-                    </div>
-                    <button className="ml-auto text-xs font-medium text-indigo-600 hover:text-indigo-700">
-                      Open
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Right column – placeholder for charts / quick view */}
-            <div className="space-y-4">
-              <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
-                <h2 className="text-base font-semibold text-slate-900 mb-2">
-                  Today&apos;s overview
-                </h2>
-                <p className="text-sm text-slate-500">
-                  Quick snapshot of your pipeline performance. Integrate charts
-                  here later (e.g., Chart.js or Recharts).
-                </p>
-
-                <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
-                  <div className="rounded-xl bg-slate-50 p-3">
-                    <p className="text-slate-500">Applications this week</p>
-                    <p className="mt-1 text-lg font-semibold">138</p>
-                  </div>
-                  <div className="rounded-xl bg-slate-50 p-3">
-                    <p className="text-slate-500">Interview rate</p>
-                    <p className="mt-1 text-lg font-semibold">32%</p>
-                  </div>
-                  <div className="rounded-xl bg-slate-50 p-3">
-                    <p className="text-slate-500">Offer acceptance</p>
-                    <p className="mt-1 text-lg font-semibold">78%</p>
-                  </div>
-                  <div className="rounded-xl bg-slate-50 p-3">
-                    <p className="text-slate-500">Time to hire</p>
-                    <p className="mt-1 text-lg font-semibold">18 days</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-2xl bg-indigo-600 p-4 text-sm text-indigo-50 shadow-sm">
-                <p className="font-semibold mb-1">Need more candidates?</p>
-                <p className="mb-3">
-                  Reach more job seekers by boosting your top 3 roles.
-                </p>
-                <button className="rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-50">
-                  Explore boosting options
-                </button>
-              </div>
-            </div>
-          </section>
-        </main>
-      </div>
+    <div className="flex flex-col justify-between rounded-xl bg-slate-900 text-slate-50 px-4 py-3">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-slate-300">
+        {label}
+      </p>
+      <p className="mt-2 text-2xl font-semibold">{loading ? "…" : value}</p>
     </div>
   );
 }
 
-function SidebarItem({ label, active }) {
+function MiniMetric({ label, value }) {
   return (
-    <button
-      className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left ${
-        active
-          ? 'bg-indigo-50 text-indigo-700 font-medium'
-          : 'text-slate-700 hover:bg-slate-50'
-      }`}
-    >
-      <span className="text-sm">{label}</span>
-      {active && (
-        <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
-      )}
-    </button>
+    <div className="rounded-xl bg-slate-50 p-3">
+      <p className="text-[11px] text-slate-500">{label}</p>
+      <p className="mt-1 text-base font-semibold text-slate-900">{value}</p>
+    </div>
+  );
+}
+
+export default function EmployerHome() {
+  const navigate = useNavigate();
+  const [stats, setStats] = useState({
+    openJobs: 0,
+    newApplicationsToday: 0,
+    pendingReviews: 0,
+    upcomingInterviews: 0,
+  });
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const res = await api.get("/employer/stats");
+        setStats(res.data);
+      } catch (err) {
+        console.error("Failed to load employer stats", err);
+        toast.error("Failed to load dashboard");
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+    loadStats();
+  }, []);
+
+  const goPostJob = () => navigate("/employer/jobs/post");
+  const goJobs = () => navigate("/employer/jobs");
+  const goCandidates = () => navigate("/employer/candidates");
+
+  return (
+    <div className="space-y-4">
+      {/* Header / actions */}
+      <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-indigo-600">
+              Employer home
+            </p>
+            <h1 className="mt-1 text-xl font-semibold">Good morning,</h1>
+            <p className="mt-1 text-sm text-slate-500">
+              Here is an overview of your hiring pipeline today.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={goPostJob}
+              className="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
+            >
+              + Post job
+            </button>
+            <button
+              onClick={goCandidates}
+              className="inline-flex items-center rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              View candidates
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats */}
+      <section className="grid gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          label="Open jobs"
+          value={stats.openJobs}
+          loading={loadingStats}
+        />
+        <StatCard
+          label="New applications today"
+          value={stats.newApplicationsToday}
+          loading={loadingStats}
+        />
+        <StatCard
+          label="Pending reviews"
+          value={stats.pendingReviews}
+          loading={loadingStats}
+        />
+        <StatCard
+          label="Upcoming interviews"
+          value={stats.upcomingInterviews}
+          loading={loadingStats}
+        />
+      </section>
+
+      {/* Main grid */}
+      <section className="grid gap-4 lg:grid-cols-3">
+        {/* Left: tasks */}
+        <div className="space-y-3 lg:col-span-2">
+          <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-slate-900">
+                Next actions
+              </h2>
+              <button className="text-xs font-medium text-indigo-600 hover:text-indigo-700">
+                View all
+              </button>
+            </div>
+            <ul className="space-y-2">
+              {[
+                'Review new applications for “Frontend Developer”',
+                "Respond to unread candidate messages",
+                'Schedule interviews for “Senior Backend Engineer”',
+                'Update salary range for “UI/UX Designer” posting',
+              ].map((task, index) => (
+                <li
+                  key={index}
+                  className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5"
+                >
+                  <span className="mt-1 h-2.5 w-2.5 flex-none rounded-full bg-amber-400" />
+                  <div className="text-sm text-slate-700">{task}</div>
+                  <button
+                    onClick={goJobs}
+                    className="ml-auto text-xs font-medium text-indigo-600 hover:text-indigo-700"
+                  >
+                    Open
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Right column */}
+        <div className="space-y-3">
+          <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+            <h2 className="mb-1 text-sm font-semibold text-slate-900">
+              Today&apos;s overview
+            </h2>
+            <p className="text-xs text-slate-500">
+              Quick snapshot of your pipeline performance. Replace these
+              placeholders with charts later.
+            </p>
+
+            <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
+              <MiniMetric label="Applications this week" value="138" />
+              <MiniMetric label="Interview rate" value="32%" />
+              <MiniMetric label="Offer acceptance" value="78%" />
+              <MiniMetric label="Time to hire" value="18 days" />
+            </div>
+          </div>
+
+          <div className="rounded-2xl bg-indigo-600 p-4 text-sm text-indigo-50 shadow-sm">
+            <p className="mb-1 font-semibold">Need more candidates?</p>
+            <p className="mb-3 text-xs">
+              Reach more job seekers by boosting your top 3 roles.
+            </p>
+            <button
+              onClick={goPostJob}
+              className="rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-50"
+            >
+              Explore boosting options
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }

@@ -60,7 +60,7 @@ export default function EmployerDetails() {
       await api.post("/profile/employer", form);
 
       toast.success("Employer profile saved");
-      navigate("/employer/dashboard");
+      navigate("/employer/home");
     } catch (err) {
       toast.error(err.response?.data || "Failed to save profile");
     } finally {

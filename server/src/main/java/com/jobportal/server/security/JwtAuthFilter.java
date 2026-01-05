@@ -26,31 +26,30 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        // 1) allow /api/auth/** without JWT
+        // allow /api/auth/** without JWT
         if (path.startsWith("/api/auth/")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 2) allow CORS preflight
+        // allow CORS preflight
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 3) for all other paths, try to authenticate via JWT
         String header = request.getHeader("Authorization");
-
+        System.out.println("JWT header for " + path + " = " + header);
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
 
             try {
                 String email = JwtUtil.extractUsername(token);
-                String role = JwtUtil.extractRole(token); // JOBSEEKER/EMPLOYER
+                String role = JwtUtil.extractRole(token); // JOBSEEKER / EMPLOYER
 
                 UsernamePasswordAuthenticationToken auth =
                         new UsernamePasswordAuthenticationToken(
-                                email,
+                                email, // principal = email
                                 null,
                                 List.of(new SimpleGrantedAuthority("ROLE_" + role))
                         );
@@ -63,5 +62,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+        
     }
 }

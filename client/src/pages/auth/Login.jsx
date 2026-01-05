@@ -35,34 +35,39 @@ export default function Login() {
 
 
  const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!validate()) {
-      toast.error("Fix errors");
-      return;
-    }
+  if (!validate()) {
+    toast.error("Fix errors");
+    return;
+  }
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const res = await api.post("/auth/login", form);
-      const { token, role } = res.data;
+    const res = await api.post("/auth/login", form);
+    // backend must return userId here
+    const { token, role, profileCompleted, userId } = res.data;
 
-      localStorage.setItem("token", token);
-      localStorage.setItem("role", role);
+    localStorage.setItem("token", token);
+    localStorage.setItem("role", role);
+    localStorage.setItem("profileCompleted", String(profileCompleted));
+    localStorage.setItem("userId", String(userId)); // numeric id as string
 
-      toast.success("Login successful");
+    toast.success("Login successful");
 
-      if (role === "ADMIN") navigate("/admin/dashboard");
-      else if (role === "EMPLOYER") navigate("/home/employer");
-      else navigate("/home/jobseeker");
+    if (role === "ADMIN") navigate("/admin/dashboard");
+    else if (role === "EMPLOYER") navigate("/employer/home");
+    else navigate("/home/jobseeker");
+  } catch (err) {
+    console.error(err);
+    toast.error("Invalid credentials");
+  } finally {
+    setLoading(false);
+  }
+};
 
-    } catch (err) {
-      toast.error("Invalid credentials");
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   return (
     <div

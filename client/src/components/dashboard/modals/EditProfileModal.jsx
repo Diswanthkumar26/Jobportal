@@ -41,6 +41,16 @@ export default function EditProfileModal({
     return () => (document.body.style.overflow = "auto");
   }, [open]);
 
+  useEffect(() => {
+  // cleanup previous blob URL when photoUrl changes or modal closes
+  return () => {
+    if (photoUrl && photoUrl.startsWith("blob:")) {
+      URL.revokeObjectURL(photoUrl);
+    }
+  };
+}, [photoUrl]);
+
+
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;

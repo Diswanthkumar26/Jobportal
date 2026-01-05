@@ -32,6 +32,14 @@ public class User {
     private String headline;
     private String location;
     private String photoUrl;
+    
+@Column(nullable = false)
+private boolean enabled = true;
+
+public boolean isEnabled() {
+    return enabled;
+}
+
 
     @ElementCollection
     @CollectionTable(name = "user_skills", joinColumns = @JoinColumn(name = "user_id"))

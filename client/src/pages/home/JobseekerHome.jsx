@@ -1,39 +1,51 @@
 // src/pages/home/JobseekerHome.jsx
 import React, { useEffect, useState, useMemo } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
-import ProfileProgressNav from "../../components/ProfileProgressNav";
+import JobCard from "../../components/JobCard";
+import Navbar from "../../components/common/Navbar";
+import { MOCK_JOBS } from "../../data/mockJobs"; 
 
-export default function JobseekerHome() {
+export default function JobseekerHome({ profile }) {
   const navigate = useNavigate();
 
   const [jobs, setJobs] = useState([]);
-  const [location, setLocation] = useState("All locations");
   const [keyword, setKeyword] = useState("");
-  const [profile, setProfile] = useState(null);
+  const [location, setLocation] = useState("all");
+  const [jobType, setJobType] = useState("all");
 
   const [locationQuery, setLocationQuery] = useState("");
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
 
-  // navbar state
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [typeFilter, setTypeFilter] = useState("any");
+  const [expFilter, setExpFilter] = useState("any");
+  const [sortBy, setSortBy] = useState("relevant");
+
+  const [savedJobs, setSavedJobs] = useState(() => {
+    const stored = localStorage.getItem("savedJobs");
+    return stored ? JSON.parse(stored) : [];
+  });
 
   useEffect(() => {
-    api.get("/users/me").then((res) => setProfile(res.data));
-  }, []);
-  useEffect(() => {
-  api.get("/users/me").then((res) => {
-    setProfile(res.data);
-    localStorage.setItem("userId", res.data.id); // add this line
-  });
-}, []);
+    localStorage.setItem("savedJobs", JSON.stringify(savedJobs));
+  }, [savedJobs]);
+
+  const toggleSaveJob = (job) => {
+    setSavedJobs((prev) =>
+      prev.includes(job.id)
+        ? prev.filter((id) => id !== job.id)
+        : [...prev, job.id]
+    );
+  };
 
   useEffect(() => {
     api
       .get("/jobs")
-      .then((res) => setJobs(res.data))
-      .catch((err) => console.error(err));
+      .then((res) => setJobs(res.data || MOCK_JOBS))
+      .catch((err) => {
+        console.warn("Jobs API failed, using mock data", err);
+        setJobs(MOCK_JOBS);
+      });
   }, []);
 
   const allLocations = useMemo(
@@ -42,22 +54,68 @@ export default function JobseekerHome() {
     [jobs]
   );
 
+  const jobTypes = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          jobs
+            .map((j) => (j.jobType || j.type || "").trim())
+            .filter(Boolean)
+        )
+      ),
+    [jobs]
+  );
+
   const filteredLocations = ["All locations", ...allLocations].filter((loc) =>
     loc.toLowerCase().includes(locationQuery.toLowerCase())
   );
 
-  const filteredJobs = useMemo(
-    () =>
-      jobs.filter(
-        (job) =>
-          (location === "All locations" || job.location === location) &&
-          (keyword === "" ||
-            job.title.toLowerCase().includes(keyword.toLowerCase()))
-      ),
-    [jobs, location, keyword]
-  );
+  const filteredJobs = jobs.filter((job) => {
+    const title = job.title?.toLowerCase() || "";
+    const company = job.company?.toLowerCase() || "";
+    const loc = job.location?.toLowerCase() || "";
+    const type = (job.jobType || job.type || "").trim().toLowerCase();
+    const exp = (job.experience || "").trim();
 
-  // Simple recommendation: prefer same location + skill match in title/description
+    const kw = keyword.toLowerCase();
+
+    const matchesKeyword =
+      kw === "" || title.includes(kw) || company.includes(kw) || loc.includes(kw);
+
+    const matchesLocation =
+      location === "all" || loc === location.toLowerCase();
+
+    const matchesJobType =
+      jobType === "all" ||
+      type === jobType.trim().toLowerCase();
+
+    const matchesTypeFilter =
+      typeFilter === "any" ||
+      type === typeFilter.trim().toLowerCase();
+
+    const matchesExpFilter =
+      expFilter === "any" || exp === expFilter;
+
+    return (
+      matchesKeyword &&
+      matchesLocation &&
+      matchesJobType &&
+      matchesTypeFilter &&
+      matchesExpFilter
+    );
+  });
+
+  const sortedJobs = useMemo(() => {
+    const list = [...filteredJobs];
+
+    if (sortBy === "newest") {
+      list.sort((a, b) => (b.id || 0) - (a.id || 0));
+    } else if (sortBy === "salaryHigh") {
+      list.sort((a, b) => (b.salaryMax || 0) - (a.salaryMax || 0));
+    }
+    return list;
+  }, [filteredJobs, sortBy]);
+
   const recommendedJobs = useMemo(() => {
     if (!profile) return [];
     const skills = (profile.skills || []).map((s) => s.toLowerCase());
@@ -82,213 +140,20 @@ export default function JobseekerHome() {
       .map((x) => x.job);
   }, [filteredJobs, profile]);
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    navigate("/login");
-  };
-
   const handleLocationSelect = (loc) => {
-    setLocation(loc);
-    setLocationQuery(loc === "All locations" ? "" : loc);
+    if (loc === "All locations") {
+      setLocation("all");
+      setLocationQuery("");
+    } else {
+      setLocation(loc.toLowerCase());
+      setLocationQuery(loc);
+    }
     setShowLocationDropdown(false);
   };
 
-  const JobCard = ({ job, compact = false }) => (
-    <article
-      onClick={() => navigate(`/jobs/${job.id}`)}
-      className={`px-4 md:px-6 py-4 hover:bg-slate-50 cursor-pointer transition ${
-        compact ? "border border-slate-100 rounded-xl" : ""
-      }`}
-    >
-      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
-        <div>
-          <h3 className="text-sm md:text-base font-semibold text-slate-900">
-            {job.title}
-          </h3>
-          <p className="text-xs text-slate-500 mt-1">{job.companyName}</p>
-          <div className="flex flex-wrap gap-4 mt-2 text-[11px] text-slate-500">
-            <span className="flex items-center gap-1">
-              <span>📍</span>
-              <span>{job.location}</span>
-            </span>
-            {job.salary && (
-              <span className="flex items-center gap-1">
-                <span>💰</span>
-                <span>{job.salary}</span>
-              </span>
-            )}
-            {job.createdAt && (
-              <span className="flex items-center gap-1">
-                <span>📅</span>
-                <span>
-                  {new Date(job.createdAt).toLocaleDateString()}
-                </span>
-              </span>
-            )}
-          </div>
-          {job.description && (
-            <p className="mt-2 text-xs md:text-sm text-slate-600 max-w-3xl line-clamp-2">
-              {job.description}
-            </p>
-          )}
-        </div>
-        <div className="flex md:flex-col items-end gap-2">
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700">
-            {job.employmentType || "Full-time"}
-          </span>
-        </div>
-      </div>
-    </article>
-  );
-
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Navbar */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
-        <div className="max-w-6xl mx-auto flex items-center justify-between py-3 px-4 md:py-4">
-          {/* Brand */}
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-md bg-indigo-500 flex items-center justify-center">
-              <div className="w-4 h-4 bg-white rounded-sm" />
-            </div>
-            <span className="font-semibold text-lg md:text-xl text-slate-900">
-              JobPortal
-            </span>
-          </div>
-
-          {/* Desktop nav */}
-          <nav className="hidden md:flex items-center space-x-6 text-sm">
-            <NavLink
-              to="/home/jobseeker"
-              className={({ isActive }) =>
-                `cursor-pointer ${
-                  isActive ? "text-indigo-600 font-medium" : "text-slate-600"
-                } hover:text-indigo-600`
-              }
-            >
-              Home
-            </NavLink>
-            <NavLink
-              to="/jobs"
-              className={({ isActive }) =>
-                `cursor-pointer ${
-                  isActive ? "text-indigo-600 font-medium" : "text-slate-600"
-                } hover:text-indigo-600`
-              }
-            >
-              Find a Job
-            </NavLink>
-            <button
-              onClick={() => navigate("/dashboard/jobseeker")}
-              className="cursor-pointer text-slate-600 hover:text-indigo-600"
-            >
-              Dashboard
-            </button>
-          </nav>
-
-          {/* Right side */}
-          <div className="hidden md:flex items-center gap-3 relative">
-            {profile && (
-              <div
-                className="cursor-pointer"
-                onClick={() => setProfileMenuOpen((v) => !v)}
-              >
-                <ProfileProgressNav
-                  percent={profile.profileCompletedPercentage ?? 40}
-                  image={profile.photoUrl ?? "/default-avatar.jpg"}
-                />
-              </div>
-            )}
-            <button
-              onClick={logout}
-              className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden hover:bg-slate-200"
-            >
-              <span className="text-xs font-semibold text-slate-700">⎋</span>
-            </button>
-
-            {profileMenuOpen && (
-              <div className="absolute right-0 top-12 w-40 bg-white border border-slate-200 rounded-lg shadow-lg text-xs text-slate-700">
-                <button
-                  className="w-full text-left px-3 py-2 hover:bg-slate-50"
-                  onClick={() => {
-                    setProfileMenuOpen(false);
-                    navigate("/dashboard/jobseeker");
-                  }}
-                >
-                  View profile
-                </button>
-                <button
-                  className="w-full text-left px-3 py-2 hover:bg-slate-50"
-                  onClick={() => {
-                    setProfileMenuOpen(false);
-                    logout();
-                  }}
-                >
-                  Logout
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Mobile buttons */}
-          <div className="flex md:hidden items-center gap-2">
-            <button
-              onClick={logout}
-              className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200"
-            >
-              <span className="text-[11px] font-semibold text-slate-700">
-                ⎋
-              </span>
-            </button>
-            <button
-              onClick={() => setMobileNavOpen((v) => !v)}
-              className="w-8 h-8 rounded-md border border-slate-200 flex items-center justify-center"
-            >
-              <span className="text-lg">☰</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile nav sheet */}
-        {mobileNavOpen && (
-          <div className="md:hidden border-t border-slate-200 bg-white">
-            <nav className="flex flex-col px-4 py-3 text-sm">
-              <NavLink
-                to="/home/jobseeker"
-                className={({ isActive }) =>
-                  `py-2 ${
-                    isActive ? "text-indigo-600 font-medium" : "text-slate-700"
-                  }`
-                }
-                onClick={() => setMobileNavOpen(false)}
-              >
-                Home
-              </NavLink>
-              <NavLink
-                to="/jobs"
-                className={({ isActive }) =>
-                  `py-2 ${
-                    isActive ? "text-indigo-600 font-medium" : "text-slate-700"
-                  }`
-                }
-                onClick={() => setMobileNavOpen(false)}
-              >
-                Find a Job
-              </NavLink>
-              <button
-                className="py-2 text-left text-slate-700"
-                onClick={() => {
-                  setMobileNavOpen(false);
-                  navigate("/dashboard/jobseeker");
-                }}
-              >
-                Dashboard
-              </button>
-            </nav>
-          </div>
-        )}
-      </header>
+      <Navbar profile={profile} />
 
       {/* Hero + search */}
       <section className="bg-indigo-600 text-white">
@@ -307,7 +172,16 @@ export default function JobseekerHome() {
             <div className="w-full max-w-3xl bg-white rounded-xl shadow-lg flex flex-col md:flex-row items-stretch overflow-hidden">
               {/* Keyword input */}
               <div className="flex-1 flex items-center px-4 py-3 border-b md:border-b-0 md:border-r border-slate-200">
-                <span className="text-slate-400 mr-2 text-lg">🔍</span>
+                <svg
+                  viewBox="0 0 24 24"
+                  className="w-4 h-4 mr-2 text-slate-400"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                >
+                  <circle cx="11" cy="11" r="5" />
+                  <path d="M16 16l3 3" />
+                </svg>
                 <input
                   placeholder="Job title, keywords, or company"
                   className="flex-1 text-xs md:text-sm text-slate-800 outline-none placeholder:text-slate-400"
@@ -319,7 +193,16 @@ export default function JobseekerHome() {
               {/* Location typeahead */}
               <div className="relative w-full md:w-64 border-b md:border-b-0 md:border-r border-slate-200">
                 <div className="flex items-center px-4 py-3 text-xs md:text-sm">
-                  <span className="text-slate-400 mr-2 text-lg">📍</span>
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="w-4 h-4 mr-2 text-slate-400"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                  >
+                    <path d="M12 21s-6-5.1-6-10a6 6 0 1112 0c0 4.9-6 10-6 10z" />
+                    <circle cx="12" cy="11" r="2.3" />
+                  </svg>
                   <input
                     type="text"
                     placeholder="Location (type to search)"
@@ -349,6 +232,30 @@ export default function JobseekerHome() {
                 )}
               </div>
 
+              {/* Type + Experience filters */}
+              <div className="w-full md:w-72 flex border-b md:border-b-0 md:border-r border-slate-200">
+                <select
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value)}
+                  className="w-1/2 border-r border-slate-200 px-3 py-3 text-[11px] md:text-xs text-slate-700 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                >
+                  <option value="any">Any type</option>
+                  <option value="Full-time">Full-time</option>
+                  <option value="Part-time">Part-time</option>
+                  <option value="Contract">Contract</option>
+                </select>
+                <select
+                  value={expFilter}
+                  onChange={(e) => setExpFilter(e.target.value)}
+                  className="w-1/2 px-3 py-3 text-[11px] md:text-xs text-slate-700 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                >
+                  <option value="any">Any exp.</option>
+                  <option value="0-2">0–2 yrs</option>
+                  <option value="2-4">2–4 yrs</option>
+                  <option value="4+">4+ yrs</option>
+                </select>
+              </div>
+
               {/* Search button */}
               <button className="w-full md:w-40 bg-indigo-500 hover:bg-indigo-600 text-sm font-medium text-white px-6 py-3">
                 Search Jobs
@@ -373,7 +280,13 @@ export default function JobseekerHome() {
             </div>
             <div className="grid gap-3 md:gap-4 md:grid-cols-2">
               {recommendedJobs.map((job) => (
-                <JobCard key={job.id} job={job} compact />
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  onOpen={(j) => navigate(`/jobs/${j.id}`)}
+                  onSave={toggleSaveJob}
+                  isSaved={savedJobs.includes(job.id)}
+                />
               ))}
             </div>
           </section>
@@ -383,32 +296,66 @@ export default function JobseekerHome() {
         <section className="bg-white rounded-2xl shadow-sm border border-slate-200">
           <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-slate-100">
             <div className="text-sm font-semibold text-slate-800">
-              {filteredJobs.length} Jobs Found
+              {sortedJobs.length} Jobs Found
             </div>
-            <button className="flex items-center gap-1 text-xs md:text-sm text-slate-500 hover:text-slate-800">
-              <span>Filters</span>
-              <span className="text-lg">⚙️</span>
-            </button>
+            <div className="flex items-center gap-3">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="text-xs md:text-sm border border-slate-200 rounded-md px-2.5 py-1.5 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              >
+                <option value="relevant">Most relevant</option>
+                <option value="newest">Newest first</option>
+                <option value="salaryHigh">Salary high → low</option>
+              </select>
+
+              <button className="hidden md:inline-flex items-center gap-1 text-xs md:text-sm text-slate-500 hover:text-slate-800">
+                <span>Filters</span>
+                <svg
+                  viewBox="0 0 24 24"
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                >
+                  <path d="M4 4h16l-5.5 6.5v5l-5 2v-7z" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           <div className="divide-y divide-slate-100">
-            {filteredJobs.length === 0 && (
+            {sortedJobs.length === 0 && (
               <p className="px-4 md:px-6 py-6 text-sm text-slate-500">
                 No jobs found.
               </p>
             )}
-            {filteredJobs.map((job) => (
-              <JobCard key={job.id} job={job} />
+            {sortedJobs.map((job) => (
+              <JobCard
+                key={job.id}
+                job={job}
+                onOpen={(j) => navigate(`/jobs/${j.id}`)}
+                onSave={toggleSaveJob}
+                isSaved={savedJobs.includes(job.id)}
+              />
             ))}
           </div>
         </section>
 
         {/* Scroll to top */}
         <button
-          className="fixed bottom-6 right-6 w-10 h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center shadow-lg"
+          className="fixed bottom-16 right-6 w-10 h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center shadow-lg md:bottom-6"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         >
-          ↑
+          <svg
+            viewBox="0 0 24 24"
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+          >
+            <path d="M12 5l-6 6h4v8h4v-8h4z" />
+          </svg>
         </button>
       </main>
     </div>

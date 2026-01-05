@@ -24,6 +24,8 @@ import EditEducationModal from "../../components/dashboard/modals/EditEducationM
 import EditCertificationModal from "../../components/dashboard/modals/EditCertificationModal";
 import UploadResumeModal from "../../components/dashboard/modals/UploadResumeModal";
 
+import Navbar from "../../components/common/Navbar";
+
 export default function JobSeekerDashboard() {
   const navigate = useNavigate();
 
@@ -50,7 +52,6 @@ export default function JobSeekerDashboard() {
   const [resumeStatus, setResumeStatus] = useState("No resume uploaded");
   const [resumeUrl, setResumeUrl] = useState(null);
 
-  // modal state
   const [openProfileModal, setOpenProfileModal] = useState(false);
   const [openAboutModal, setOpenAboutModal] = useState(false);
   const [openExperienceModal, setOpenExperienceModal] = useState(false);
@@ -60,7 +61,6 @@ export default function JobSeekerDashboard() {
   const [openCertModal, setOpenCertModal] = useState(false);
   const [openResumeModal, setOpenResumeModal] = useState(false);
 
-  // editing indexes
   const [editingExpIndex, setEditingExpIndex] = useState(null);
   const [editingProjectIndex, setEditingProjectIndex] = useState(null);
   const [editingEduIndex, setEditingEduIndex] = useState(null);
@@ -69,9 +69,16 @@ export default function JobSeekerDashboard() {
   const openModal = (setter) => setter(true);
   const closeModal = (setter) => setter(false);
 
+  const userId = localStorage.getItem("userId");
+  console.log("userId in dashboard", userId);
+
   useEffect(() => {
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
     loadProfile();
-  }, []);
+  }, [userId]);
 
   const loadProfile = async () => {
     setLoading(true);
@@ -104,6 +111,7 @@ export default function JobSeekerDashboard() {
   };
 
   const sendUpdate = async (patch) => {
+    if (!userId) return;
     try {
       await updateJobSeekerProfile(patch);
       await loadProfile();
@@ -113,7 +121,6 @@ export default function JobSeekerDashboard() {
     }
   };
 
-  // remove handlers
   const handleRemoveExperience = async (index) => {
     const updated = experience.filter((_, i) => i !== index);
     setExperience(updated);
@@ -144,50 +151,23 @@ export default function JobSeekerDashboard() {
     await sendUpdate({ skills: updated });
   };
 
+  if (!userId) {
+    return (
+      <div className="p-6 text-center text-sm text-red-500">
+        No userId in localStorage. Ensure you call /users/me after login and
+        store userId.
+      </div>
+    );
+  }
+
   if (loading) {
     return <div className="p-6 text-center">Loading...</div>;
   }
 
   return (
-    <div className="min-h-screen bg-slate-100">
-      {/* HEADER BAR */}
-      <header className="bg-white border-b border-slate-200">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-md bg-indigo-600 flex items-center justify-center">
-              <span className="text-xs font-bold text-white">JD</span>
-            </div>
-            <span className="text-lg font-semibold text-slate-900">
-              JobPortal
-            </span>
-          </div>
+    <div className="min-h-screen bg-slate-100 pb-20">
+      <Navbar profile={profile} />
 
-          <nav className="hidden md:flex items-center gap-6 text-sm">
-            <button
-              className="text-slate-600 hover:text-indigo-600"
-              onClick={() => navigate("/home/jobseeker")}
-            >
-              Home
-            </button>
-            <button
-              className="text-slate-600 hover:text-indigo-600"
-              onClick={() => navigate("/jobs")}
-            >
-              Find Jobs
-            </button>
-          </nav>
-
-          {profile.photoUrl && (
-            <img
-              src={profile.photoUrl}
-              className="w-9 h-9 rounded-full object-cover"
-              alt="Profile"
-            />
-          )}
-        </div>
-      </header>
-
-      {/* MAIN CONTENT */}
       <main className="max-w-6xl mx-auto px-2 md:px-4 py-4 md:py-6 flex gap-4">
         <div className="flex-1 space-y-4">
           <ProfileHeader
@@ -282,19 +262,15 @@ export default function JobSeekerDashboard() {
       </main>
 
       {/* MODALS */}
-
       <EditProfileModal
         open={openProfileModal}
         initial={profile}
         onClose={() => closeModal(setOpenProfileModal)}
         onChangePhoto={(file) => {
-          // implement upload, then:
-          // setProfile(prev => ({ ...prev, photoUrl: uploadedUrl }));
-          // sendUpdate({ photoUrl: uploadedUrl });
+          // implement upload logic then update profile & sendUpdate
         }}
         onDeletePhoto={() => {
           setProfile((prev) => ({ ...prev, photoUrl: null }));
-          // optionally sendUpdate({ photoUrl: null });
         }}
         onSave={async (data) => {
           await sendUpdate(data);

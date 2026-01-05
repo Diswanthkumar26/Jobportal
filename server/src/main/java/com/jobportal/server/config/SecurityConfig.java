@@ -25,33 +25,42 @@ public class SecurityConfig {
         this.jwtAuthFilter = jwtAuthFilter;
     }
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+   @Bean
+public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        http
-            .csrf(csrf -> csrf.disable())
-            .cors(Customizer.withDefaults())
-            .sessionManagement(sm ->
-                sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            .authorizeHttpRequests(auth -> auth
+    http
+        .csrf(csrf -> csrf.disable())
+        .cors(Customizer.withDefaults())
+        .sessionManagement(sm ->
+            sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        )
+
+.authorizeHttpRequests(auth -> auth
     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
     .requestMatchers("/api/auth/**").permitAll()
 
-    .requestMatchers("/api/profile/job-seeker", "/api/profile/job-seeker/**")
-                .authenticated()
-    .requestMatchers("/api/profile/employer/**").hasRole("EMPLOYER")
+    .requestMatchers(HttpMethod.GET, "/api/jobs", "/api/jobs/**").permitAll()
+
+    .requestMatchers(HttpMethod.POST, "/api/jobs/**").authenticated()
+    .requestMatchers(HttpMethod.PUT, "/api/jobs/**").authenticated()
+    .requestMatchers(HttpMethod.DELETE, "/api/jobs/**").authenticated()
+    .requestMatchers("/api/employer/**").authenticated()
+    .requestMatchers("/api/profile/job-seeker/**").authenticated()
+    .requestMatchers("/api/profile/employer/**").authenticated()
     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
     .requestMatchers("/api/users/**").authenticated()
+    .requestMatchers("/api/applications/**").authenticated()
+    .requestMatchers("/api/saved-jobs/**").authenticated()
     .anyRequest().authenticated()
 )
 
 
+        .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+    return http.build();
+}
 
-        return http.build();
-    }
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {

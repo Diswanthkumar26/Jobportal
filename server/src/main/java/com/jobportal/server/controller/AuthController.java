@@ -73,7 +73,8 @@ public class AuthController {
                 new LoginResponse(
                         token,
                         user.getRole().name(),
-                        user.isProfileCompleted()
+                        user.isProfileCompleted(),
+                        user.getId() 
                 )
         );
     }
