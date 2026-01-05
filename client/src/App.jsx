@@ -12,11 +12,22 @@ import EmployerDashboard from "./pages/dashboard/EmployerDashboard";
 
 import JobseekerHome from "./pages/home/JobseekerHome";
 import EmployerHome from "./pages/home/EmployerHome";
-
+import JobPostPage from "./pages/employer/JobPostPage";
+import EmployerJobsPage from "./pages/employer/EmployerJobsPage";
+import EmployerCandidatesPage from "./pages/employer/EmployerCandidatesPage";
+import EmployerLayout from "./layouts/EmployerLayout";
+import EmployerJobApplicantsPage from "./pages/employer/EmployerJobApplicantsPage";
 import PrivateRoute from "./routes/PrivateRoute";
 
 import EditFullProfile from "./pages/profile/EditFullProfile";
-import FindJobs from "./pages/jobs/FindJobs"
+import FindJobs from "./pages/jobs/FindJobs";
+
+import JobDetails from "./pages/jobs/JobDetails";
+
+import JobseekerApplications from "./pages/jobseeker/JobseekerApplications";
+import SavedJobs from "./pages/jobseeker/SavedJobs";
+import EmployerJobDetails from "./pages/employer/EmployerJobDetails";
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -58,45 +69,103 @@ export default function App() {
         />
 
         {/* HOME PAGE */}
-<Route
-  path="/home/jobseeker"
-  element={
-    <PrivateRoute>
-      <JobseekerHome />
-    </PrivateRoute>
-  }
-/>
-
-{/* DASHBOARD */}
-<Route
-  path="/dashboard/jobseeker"
-  element={
-    <PrivateRoute>
-      <JobSeekerDashboard />
-    </PrivateRoute>
-  }
-/>
-<Route
-  path="/home/employer"
-  element={
-    <PrivateRoute>
-      <EmployerHome />
-    </PrivateRoute>
-  }
-/>
-
         <Route
-          path="/employer/dashboard"
+          path="/home/jobseeker"
           element={
             <PrivateRoute>
-              <EmployerDashboard />
+              <JobseekerHome />
             </PrivateRoute>
           }
         />
 
+        {/* DASHBOARD */}
+        <Route
+          path="/dashboard/jobseeker"
+          element={
+            <PrivateRoute>
+              <JobSeekerDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+  path="/employer"
+  element={
+    <PrivateRoute>
+      <EmployerLayout />
+    </PrivateRoute>
+  }
+>
+  <Route
+    path="home"
+    element={
+      <PrivateRoute>
+        <EmployerHome />
+      </PrivateRoute>
+    }
+  />
+  <Route
+    path="jobs"
+    element={
+      <PrivateRoute>
+        <EmployerJobsPage />
+      </PrivateRoute>
+    }
+  />
+  {/* NEW: employer job details */}
+  <Route
+    path="jobs/:id"
+    element={
+      <PrivateRoute>
+        <EmployerJobDetails /> 
+      </PrivateRoute>
+    }
+  />
+  <Route
+  path="jobs/:jobId/applicants"
+  element={
+    <PrivateRoute>
+      <EmployerJobApplicantsPage />
+    </PrivateRoute>
+  }
+/>
+
+  <Route
+    path="candidates"
+    element={
+      <PrivateRoute>
+        <EmployerCandidatesPage />
+      </PrivateRoute>
+    }
+  />
+  <Route
+    path="jobs/post"
+    element={
+      <PrivateRoute>
+        <JobPostPage />
+      </PrivateRoute>
+    }
+  />
+  <Route
+    path="jobs/:jobId/applicants"
+    element={
+      <PrivateRoute>
+        <EmployerJobApplicantsPage />
+      </PrivateRoute>
+    }
+  />
+</Route>
+
+
         <Route path="/profile/edit" element={<EditFullProfile />} />
         <Route path="/profile/edit" element={<EditFullProfile />} />
-<Route path="/jobs" element={<FindJobs />} />
+        <Route path="/jobs" element={<FindJobs />} />
+
+        <Route path="/jobs/:id" element={<JobDetails />} />
+        <Route
+          path="/jobseeker/applications"
+          element={<JobseekerApplications />}
+        />
+        <Route path="/jobseeker/saved" element={<SavedJobs />} />
       </Routes>
     </BrowserRouter>
   );
