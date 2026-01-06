@@ -34,7 +34,7 @@ public class JobApplicationService {
     // email comes from JWT
     public JobApplication apply(Long jobId, String email) {
         JobSeekerProfile seeker = jobSeekerProfileRepository
-                .findByUserEmail(email)   // implement this in repo
+                .findByUser_Email(email)   // implement this in repo
                 .orElseThrow(() -> new RuntimeException("Jobseeker profile not found"));
 
         JobPost job = jobRepository.findById(jobId)
@@ -52,14 +52,14 @@ public class JobApplicationService {
 
     public boolean isApplied(Long jobId, String email) {
         JobSeekerProfile seeker = jobSeekerProfileRepository
-                .findByUserEmail(email)
+                .findByUser_Email(email)
                 .orElseThrow(() -> new RuntimeException("Jobseeker profile not found"));
         return applicationRepository.existsByJobIdAndJobSeekerId(jobId, seeker.getId());
     }
 
     public List<JobApplication> myApplications(String email) {
         JobSeekerProfile seeker = jobSeekerProfileRepository
-                .findByUserEmail(email)
+                .findByUser_Email(email)
                 .orElseThrow(() -> new RuntimeException("Jobseeker profile not found"));
         return applicationRepository.findByJobSeekerId(seeker.getId());
     }

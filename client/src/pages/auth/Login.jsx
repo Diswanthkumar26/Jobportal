@@ -3,8 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import AuthAbout from "../../components/AuthAbout";
-
-
 import api from "../../services/api";
 
 export default function Login() {
@@ -32,42 +30,56 @@ export default function Login() {
     return Object.keys(err).length === 0;
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
+    if (!validate()) {
+      toast.error("Fix errors");
+      return;
+    }
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
+    try {
+      setLoading(true);
 
-  if (!validate()) {
-    toast.error("Fix errors");
-    return;
-  }
+      const res = await api.post("/auth/login", form);
 
-  try {
-    setLoading(true);
+      // adjust this shape to match your backend
+      const {
+        token,
+        role,
+        profileCompleted,
+        email,   // make sure backend returns this
+        userId,  // optional
+      } = res.data;
 
-    const res = await api.post("/auth/login", form);
-    // backend must return userId here
-    const { token, role, profileCompleted, userId } = res.data;
+      localStorage.setItem("token", token);
+      localStorage.setItem("role", role);
+      localStorage.setItem("profileCompleted", String(profileCompleted));
 
-    localStorage.setItem("token", token);
-    localStorage.setItem("role", role);
-    localStorage.setItem("profileCompleted", String(profileCompleted));
-    localStorage.setItem("userId", String(userId)); // numeric id as string
+      // UNIQUE PER-USER IDENTIFIERS (used by FindJobs / SavedJobs)
+      if (email) {
+        localStorage.setItem("email", email.trim().toLowerCase());
+      } else {
+        // fallback: derive from form if backend does not send email
+        localStorage.setItem("email", form.email.trim().toLowerCase());
+      }
 
-    toast.success("Login successful");
+      if (userId != null) {
+        localStorage.setItem("userId", String(userId));
+      }
 
-    if (role === "ADMIN") navigate("/admin/dashboard");
-    else if (role === "EMPLOYER") navigate("/employer/home");
-    else navigate("/home/jobseeker");
-  } catch (err) {
-    console.error(err);
-    toast.error("Invalid credentials");
-  } finally {
-    setLoading(false);
-  }
-};
+      toast.success("Login successful");
 
-
+      if (role === "ADMIN") navigate("/admin/dashboard");
+      else if (role === "EMPLOYER") navigate("/employer/home");
+      else navigate("/home/jobseeker");
+    } catch (err) {
+      console.error(err);
+      toast.error("Invalid credentials");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div
@@ -79,7 +91,7 @@ export default function Login() {
         backgroundPosition: "center",
       }}
     >
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
       <div className="relative w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-6 z-10">
         <motion.div
@@ -178,7 +190,7 @@ export default function Login() {
               className="w-full h-12 bg-indigo-600 text-white rounded-lg font-medium flex items-center justify-center"
             >
               {loading ? (
-                <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
                 "Login"
               )}

@@ -18,6 +18,12 @@ public class JobController {
     public JobController(JobService jobService) {
         this.jobService = jobService;
     }
+    @PostMapping("/jobs")
+public JobPost createJobAlias(@RequestBody JobPost jobPost,
+                              @AuthenticationPrincipal String email) {
+    return jobService.createJob(jobPost, email);
+}
+
 
     @PostMapping("/employer/jobs")
     public JobPost createJob(@RequestBody JobPost jobPost,

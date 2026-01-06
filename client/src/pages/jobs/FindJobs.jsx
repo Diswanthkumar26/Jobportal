@@ -9,6 +9,10 @@ import { MOCK_JOBS } from "../../data/mockJobs";
 export default function FindJobs({ profile }) {
   const navigate = useNavigate();
 
+  const userEmail = (localStorage.getItem("email") || "guest").toLowerCase();
+  const SAVED_KEY = `savedJobs:${userEmail}`;
+  console.log("FindJobs SAVED_KEY =", SAVED_KEY);
+
   const [jobs, setJobs] = useState([]);
   const [keyword, setKeyword] = useState("");
   const [location, setLocation] = useState("all");
@@ -16,21 +20,21 @@ export default function FindJobs({ profile }) {
   const [sortBy, setSortBy] = useState("relevant");
 
   const [savedJobs, setSavedJobs] = useState(() => {
-    const stored = localStorage.getItem("savedJobs");
+    const stored = localStorage.getItem(SAVED_KEY);
     return stored ? JSON.parse(stored) : [];
   });
 
-  const [visibleCount, setVisibleCount] = useState(10); // pagination size
+  const [visibleCount, setVisibleCount] = useState(10);
 
   useEffect(() => {
-    localStorage.setItem("savedJobs", JSON.stringify(savedJobs));
-  }, [savedJobs]);
+    localStorage.setItem(SAVED_KEY, JSON.stringify(savedJobs));
+  }, [savedJobs, SAVED_KEY]);
 
   const toggleSaveJob = (job) => {
+    // support id or jobId
+    const id = job.id ?? job.jobId;
     setSavedJobs((prev) =>
-      prev.includes(job.id)
-        ? prev.filter((id) => id !== job.id)
-        : [...prev, job.id]
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   };
 
@@ -70,19 +74,15 @@ export default function FindJobs({ profile }) {
 
       const matchesKeyword =
         kw === "" || title.includes(kw) || company.includes(kw) || loc.includes(kw);
-
       const matchesLocation =
         location === "all" || loc === location.toLowerCase();
-
       const matchesJobType =
-        jobType === "all" ||
-        type === jobType.trim().toLowerCase();
+        jobType === "all" || type === jobType.trim().toLowerCase();
 
       return matchesKeyword && matchesLocation && matchesJobType;
     });
   }, [jobs, keyword, location, jobType]);
 
-  // reset pagination when filters change
   useEffect(() => {
     setVisibleCount(10);
   }, [keyword, location, jobType, sortBy, jobs.length]);
@@ -110,67 +110,9 @@ export default function FindJobs({ profile }) {
       <Navbar profile={profile} />
 
       <main className="max-w-6xl mx-auto px-4 py-8 md:py-10 space-y-6">
-        {/* Filters row */}
-        <section className="bg-white rounded-2xl shadow-sm border border-slate-200 px-4 md:px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div className="flex-1 flex flex-wrap gap-2">
-            <input
-              placeholder="Search by title or company"
-              className="flex-1 min-w-[180px] border border-slate-200 rounded-md px-3 py-1.5 text-xs md:text-sm outline-none focus:ring-1 focus:ring-indigo-500"
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-            />
+        {/* filters ... */}
 
-            <select
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="border border-slate-200 rounded-md px-3 py-1.5 text-xs md:text-sm bg-white"
-            >
-              <option value="all">All locations</option>
-              {allLocations.map((loc) => (
-                <option key={loc} value={loc.toLowerCase()}>
-                  {loc}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={jobType}
-              onChange={(e) => setJobType(e.target.value)}
-              className="border border-slate-200 rounded-md px-3 py-1.5 text-xs md:text-sm bg-white"
-            >
-              <option value="all">All job types</option>
-              {jobTypes.map((jt) => (
-                <option key={jt} value={jt.toLowerCase()}>
-                  {jt}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="hidden md:inline text-xs text-slate-500">
-              {sortedJobs.length} jobs
-            </span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="border border-slate-200 rounded-md px-3 py-1.5 text-xs md:text-sm bg-white"
-            >
-              <option value="relevant">Most relevant</option>
-              <option value="newest">Newest first</option>
-              <option value="salaryHigh">Salary high → low</option>
-            </select>
-          </div>
-        </section>
-
-        {/* Jobs list with load more */}
         <section className="bg-white rounded-2xl shadow-sm border border-slate-200">
-          <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-slate-100">
-            <div className="text-sm font-semibold text-slate-800">
-              Showing {visibleJobs.length} of {sortedJobs.length} jobs
-            </div>
-          </div>
-
           <div className="divide-y divide-slate-100">
             {visibleJobs.length === 0 && (
               <p className="px-4 md:px-6 py-6 text-sm text-slate-500">
@@ -179,11 +121,11 @@ export default function FindJobs({ profile }) {
             )}
             {visibleJobs.map((job) => (
               <JobCard
-                key={job.id}
+                key={job.id ?? job.jobId}
                 job={job}
-                onOpen={(j) => navigate(`/jobs/${j.id}`)}
+                onOpen={(j) => navigate(`/jobs/${j.id ?? j.jobId}`)}
                 onSave={toggleSaveJob}
-                isSaved={savedJobs.includes(job.id)}
+                isSaved={savedJobs.includes(job.id ?? job.jobId)}
               />
             ))}
           </div>

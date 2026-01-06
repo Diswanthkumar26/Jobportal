@@ -1,10 +1,9 @@
-// src/pages/home/JobseekerHome.jsx
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import JobCard from "../../components/JobCard";
 import Navbar from "../../components/common/Navbar";
-import { MOCK_JOBS } from "../../data/mockJobs"; 
+import { MOCK_JOBS } from "../../data/mockJobs";
 
 export default function JobseekerHome({ profile }) {
   const navigate = useNavigate();
@@ -21,20 +20,24 @@ export default function JobseekerHome({ profile }) {
   const [expFilter, setExpFilter] = useState("any");
   const [sortBy, setSortBy] = useState("relevant");
 
+  // --- per-user saved key (same as FindJobs / SavedJobs) ---
+  const userEmail = (localStorage.getItem("email") || "guest").toLowerCase();
+  const SAVED_KEY = `savedJobs:${userEmail}`;
+  console.log("Home SAVED_KEY =", SAVED_KEY);
+
   const [savedJobs, setSavedJobs] = useState(() => {
-    const stored = localStorage.getItem("savedJobs");
+    const stored = localStorage.getItem(SAVED_KEY);
     return stored ? JSON.parse(stored) : [];
   });
 
   useEffect(() => {
-    localStorage.setItem("savedJobs", JSON.stringify(savedJobs));
-  }, [savedJobs]);
+    localStorage.setItem(SAVED_KEY, JSON.stringify(savedJobs));
+  }, [savedJobs, SAVED_KEY]);
 
   const toggleSaveJob = (job) => {
+    const id = job.id ?? job.jobId;
     setSavedJobs((prev) =>
-      prev.includes(job.id)
-        ? prev.filter((id) => id !== job.id)
-        : [...prev, job.id]
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   };
 
@@ -76,7 +79,6 @@ export default function JobseekerHome({ profile }) {
     const loc = job.location?.toLowerCase() || "";
     const type = (job.jobType || job.type || "").trim().toLowerCase();
     const exp = (job.experience || "").trim();
-
     const kw = keyword.toLowerCase();
 
     const matchesKeyword =
@@ -86,8 +88,7 @@ export default function JobseekerHome({ profile }) {
       location === "all" || loc === location.toLowerCase();
 
     const matchesJobType =
-      jobType === "all" ||
-      type === jobType.trim().toLowerCase();
+      jobType === "all" || type === jobType.trim().toLowerCase();
 
     const matchesTypeFilter =
       typeFilter === "any" ||
@@ -107,7 +108,6 @@ export default function JobseekerHome({ profile }) {
 
   const sortedJobs = useMemo(() => {
     const list = [...filteredJobs];
-
     if (sortBy === "newest") {
       list.sort((a, b) => (b.id || 0) - (a.id || 0));
     } else if (sortBy === "salaryHigh") {

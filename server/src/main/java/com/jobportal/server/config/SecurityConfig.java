@@ -41,7 +41,7 @@ public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
     .requestMatchers(HttpMethod.GET, "/api/jobs", "/api/jobs/**").permitAll()
 
-    .requestMatchers(HttpMethod.POST, "/api/jobs/**").authenticated()
+    .requestMatchers(HttpMethod.POST, "/api/jobs/**").permitAll()
     .requestMatchers(HttpMethod.PUT, "/api/jobs/**").authenticated()
     .requestMatchers(HttpMethod.DELETE, "/api/jobs/**").authenticated()
     .requestMatchers("/api/employer/**").authenticated()

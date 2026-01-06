@@ -1,15 +1,19 @@
+// server/src/main/java/com/jobportal/server/repository/SavedJobRepository.java
 package com.jobportal.server.repository;
 
-import java.util.List;
-
-import org.springframework.data.jpa.repository.JpaRepository;
 import com.jobportal.server.entity.SavedJob;
+import com.jobportal.server.entity.JobSeekerProfile;
+import com.jobportal.server.entity.profile.JobPost;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+import java.util.Optional;
 
 public interface SavedJobRepository extends JpaRepository<SavedJob, Long> {
 
-    boolean existsByJobIdAndJobSeekerId(Long jobId, Long jobSeekerId);
+    List<SavedJob> findByJobSeeker(JobSeekerProfile jobSeeker);
 
-    List<SavedJob> findByJobSeekerId(Long jobSeekerId);
+    boolean existsByJobAndJobSeeker(JobPost job, JobSeekerProfile jobSeeker);
 
-    void deleteByJobIdAndJobSeekerId(Long jobId, Long jobSeekerId);
+    Optional<SavedJob> findByJobAndJobSeeker(JobPost job, JobSeekerProfile jobSeeker);
 }

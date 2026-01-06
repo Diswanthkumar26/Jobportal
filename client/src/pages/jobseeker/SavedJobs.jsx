@@ -2,13 +2,16 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import JobCard from "../../components/JobCard";
-import api from "../../services/api";   // <- use existing api client
+import api from "../../services/api";
 
 export default function SavedJobs() {
   const navigate = useNavigate();
 
+  const userEmail = localStorage.getItem("email") || "guest";
+  const SAVED_KEY = `savedJobs:${userEmail}`;
+
   const [savedIds, setSavedIds] = useState(() => {
-    const stored = localStorage.getItem("savedJobs");
+    const stored = localStorage.getItem(SAVED_KEY);
     return stored ? JSON.parse(stored) : [];
   });
 
@@ -18,7 +21,7 @@ export default function SavedJobs() {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await api.get("/jobs");   // GET /api/jobs
+        const res = await api.get("/jobs");
         setAllJobs(res.data);
       } catch (e) {
         console.error("Failed to load jobs for saved list", e);
@@ -35,7 +38,7 @@ export default function SavedJobs() {
   );
 
   const clearAll = () => {
-    localStorage.removeItem("savedJobs");
+    localStorage.removeItem(SAVED_KEY);
     setSavedIds([]);
   };
 
@@ -44,7 +47,7 @@ export default function SavedJobs() {
       const next = prev.includes(job.id)
         ? prev.filter((id) => id !== job.id)
         : [...prev, job.id];
-      localStorage.setItem("savedJobs", JSON.stringify(next));
+      localStorage.setItem(SAVED_KEY, JSON.stringify(next));
       return next;
     });
   };

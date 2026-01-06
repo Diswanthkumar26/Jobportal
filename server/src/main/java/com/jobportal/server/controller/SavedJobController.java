@@ -1,12 +1,12 @@
+// server/src/main/java/com/jobportal/server/controller/SavedJobController.java
 package com.jobportal.server.controller;
-
-import java.util.List;
-
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
 
 import com.jobportal.server.entity.SavedJob;
 import com.jobportal.server.service.SavedJobService;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/saved-jobs")
@@ -19,25 +19,20 @@ public class SavedJobController {
     }
 
     @PostMapping("/{jobId}")
-    public void saveJob(@PathVariable Long jobId,
-                        @AuthenticationPrincipal String email) {
+    public void saveJob(@PathVariable Long jobId, Authentication authentication) {
+        String email = authentication.getName();
         savedJobService.saveJob(jobId, email);
     }
 
     @DeleteMapping("/{jobId}")
-    public void unsaveJob(@PathVariable Long jobId,
-                          @AuthenticationPrincipal String email) {
-        savedJobService.unsaveJob(jobId, email);
+    public void removeSavedJob(@PathVariable Long jobId, Authentication authentication) {
+        String email = authentication.getName();
+        savedJobService.removeSavedJob(jobId, email);
     }
 
-    @GetMapping
-    public List<SavedJob> mySavedJobs(@AuthenticationPrincipal String email) {
-        return savedJobService.mySavedJobs(email);
-    }
-
-    @GetMapping("/{jobId}/saved")
-    public boolean isSaved(@PathVariable Long jobId,
-                           @AuthenticationPrincipal String email) {
-        return savedJobService.isSaved(jobId, email);
+    @GetMapping("/me")
+    public List<SavedJob> mySavedJobs(Authentication authentication) {
+        String email = authentication.getName();
+        return savedJobService.getSavedJobs(email);
     }
 }
