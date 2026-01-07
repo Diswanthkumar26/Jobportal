@@ -19,11 +19,12 @@ public class JobApplication {
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "job_id")
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler","employer"})
     private JobPost job;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "jobseeker_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler","applications"})
     private JobSeekerProfile jobSeeker;
 
     @Column(nullable = false)

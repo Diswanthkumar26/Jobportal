@@ -31,7 +31,6 @@ export default function FindJobs({ profile }) {
   }, [savedJobs, SAVED_KEY]);
 
   const toggleSaveJob = (job) => {
-    // support id or jobId
     const id = job.id ?? job.jobId;
     setSavedJobs((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
@@ -41,7 +40,10 @@ export default function FindJobs({ profile }) {
   useEffect(() => {
     api
       .get("/jobs")
-      .then((res) => setJobs(res.data || MOCK_JOBS))
+      .then((res) => {
+        console.log("jobs[0] from API =", res.data?.[0]);
+        setJobs(res.data || MOCK_JOBS);
+      })
       .catch(() => setJobs(MOCK_JOBS));
   }, []);
 
@@ -110,7 +112,7 @@ export default function FindJobs({ profile }) {
       <Navbar profile={profile} />
 
       <main className="max-w-6xl mx-auto px-4 py-8 md:py-10 space-y-6">
-        {/* filters ... */}
+        {/* filters (omitted for brevity, unchanged) */}
 
         <section className="bg-white rounded-2xl shadow-sm border border-slate-200">
           <div className="divide-y divide-slate-100">

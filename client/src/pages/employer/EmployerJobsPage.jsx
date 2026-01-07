@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../services/api";
+import { EyeIcon, UsersIcon, PencilSquareIcon } from  "@heroicons/react/24/outline";
 
 export default function EmployerJobsPage() {
   const [jobs, setJobs] = useState([]);
@@ -53,15 +54,24 @@ export default function EmployerJobsPage() {
                   to={`/employer/jobs/${job.id}`}
                   className="text-xs font-medium text-indigo-600 hover:underline"
                 >
-                  View
+                  <EyeIcon className="h-4 w-4" />
                 </Link>
+
                 <button
                   onClick={() =>
                     navigate(`/employer/jobs/${job.id}/applicants`)
                   }
                   className="text-xs font-medium text-slate-700 hover:text-indigo-600"
                 >
-                  Applicants
+                  <UsersIcon className="h-4 w-4" />
+                </button>
+
+                {/* Edit with icon, same style */}
+                <button
+                  onClick={() => navigate(`/employer/jobs/${job.id}/edit`)}
+                  className="flex items-center gap-1 text-xs font-medium text-slate-700 hover:text-indigo-600"
+                >
+                  <PencilSquareIcon className="h-4 w-4" />
                 </button>
               </div>
             </li>

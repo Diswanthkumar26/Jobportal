@@ -1,10 +1,14 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+// src/pages/employer/JobPostPage.jsx
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 
 export default function JobPostPage() {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const editing = !!id;
+
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     title: "",
@@ -16,6 +20,36 @@ export default function JobPostPage() {
     description: "",
   });
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    if (!editing) return;
+
+    const loadJob = async () => {
+      try {
+        const res = await api.get("/employer/jobs");
+        const job = res.data.find((j) => j.id === Number(id));
+        if (job) {
+          setForm({
+            title: job.title || "",
+            company: job.company || "",
+            location: job.location || "",
+            salaryRange: job.salaryRange || "",
+            experience: job.experience || "",
+            jobType: job.jobType || "",
+            description: job.description || "",
+          });
+        } else {
+          toast.error("Job not found");
+          navigate("/employer/jobs");
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to load job");
+      }
+    };
+
+    loadJob();
+  }, [editing, id, navigate]);
 
   const handleChange = (e) => {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -41,12 +75,17 @@ export default function JobPostPage() {
 
     try {
       setLoading(true);
-      await api.post("/jobs", form);
-      toast.success("Job posted successfully");
+      if (editing) {
+        await api.put(`/employer/jobs/${id}`, form);
+        toast.success("Job updated successfully");
+      } else {
+        await api.post("/employer/jobs", form);
+        toast.success("Job posted successfully");
+      }
       navigate("/employer/jobs");
     } catch (err) {
       console.error(err);
-      toast.error(err.response?.data || "Failed to post job");
+      toast.error(err.response?.data || "Failed to save job");
     } finally {
       setLoading(false);
     }
@@ -55,10 +94,12 @@ export default function JobPostPage() {
   return (
     <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
       <h1 className="mb-2 text-base font-semibold text-slate-900">
-        Post a new job
+        {editing ? "Edit job" : "Post a new job"}
       </h1>
       <p className="mb-4 text-sm text-slate-500">
-        Fill in the details below to create a new job posting.
+        {editing
+          ? "Update the details of this job posting."
+          : "Fill in the details below to create a new job posting."}
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -68,7 +109,7 @@ export default function JobPostPage() {
             name="title"
             value={form.title}
             onChange={handleChange}
-            className="mt-1 w-full h-10 rounded-lg border border-slate-300 px-3 text-sm"
+            className="mt-1 h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
           />
           {errors.title && (
             <p className="mt-1 text-xs text-red-500">{errors.title}</p>
@@ -81,7 +122,7 @@ export default function JobPostPage() {
             name="company"
             value={form.company}
             onChange={handleChange}
-            className="mt-1 w-full h-10 rounded-lg border border-slate-300 px-3 text-sm"
+            className="mt-1 h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
           />
           {errors.company && (
             <p className="mt-1 text-xs text-red-500">{errors.company}</p>
@@ -96,7 +137,7 @@ export default function JobPostPage() {
               value={form.location}
               onChange={handleChange}
               placeholder="e.g. Bengaluru, Remote"
-              className="mt-1 w-full h-10 rounded-lg border border-slate-300 px-3 text-sm"
+              className="mt-1 h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
             />
             {errors.location && (
               <p className="mt-1 text-xs text-red-500">{errors.location}</p>
@@ -109,7 +150,7 @@ export default function JobPostPage() {
               value={form.salaryRange}
               onChange={handleChange}
               placeholder="e.g. ₹6 – ₹10 LPA"
-              className="mt-1 w-full h-10 rounded-lg border border-slate-300 px-3 text-sm"
+              className="mt-1 h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
             />
           </div>
         </div>
@@ -122,7 +163,7 @@ export default function JobPostPage() {
               value={form.experience}
               onChange={handleChange}
               placeholder="e.g. 0-2 yrs"
-              className="mt-1 w-full h-10 rounded-lg border border-slate-300 px-3 text-sm"
+              className="mt-1 h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
             />
           </div>
           <div>
@@ -131,7 +172,7 @@ export default function JobPostPage() {
               name="jobType"
               value={form.jobType}
               onChange={handleChange}
-              className="mt-1 w-full h-10 rounded-lg border border-slate-300 px-3 text-sm"
+              className="mt-1 h-10 w-full rounded-lg border border-slate-300 px-3 text-sm"
             >
               <option value="">Select</option>
               <option value="FULL_TIME">Full-time</option>
@@ -171,7 +212,13 @@ export default function JobPostPage() {
             disabled={loading}
             className="h-10 rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-60"
           >
-            {loading ? "Posting..." : "Post job"}
+            {loading
+              ? editing
+                ? "Saving..."
+                : "Posting..."
+              : editing
+              ? "Save changes"
+              : "Post job"}
           </button>
         </div>
       </form>

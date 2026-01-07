@@ -40,7 +40,7 @@ public class JobApplicationService {
         JobPost job = jobRepository.findById(jobId)
                 .orElseThrow(() -> new RuntimeException("Job not found"));
 
-        if (applicationRepository.existsByJobIdAndJobSeekerId(jobId, seeker.getId())) {
+        if (applicationRepository.existsByJob_IdAndJobSeeker_Id(jobId, seeker.getId())) {
             throw new IllegalStateException("Already applied");
         }
 
@@ -54,20 +54,20 @@ public class JobApplicationService {
         JobSeekerProfile seeker = jobSeekerProfileRepository
                 .findByUser_Email(email)
                 .orElseThrow(() -> new RuntimeException("Jobseeker profile not found"));
-        return applicationRepository.existsByJobIdAndJobSeekerId(jobId, seeker.getId());
+        return applicationRepository.existsByJob_IdAndJobSeeker_Id(jobId, seeker.getId());
     }
 
     public List<JobApplication> myApplications(String email) {
         JobSeekerProfile seeker = jobSeekerProfileRepository
                 .findByUser_Email(email)
                 .orElseThrow(() -> new RuntimeException("Jobseeker profile not found"));
-        return applicationRepository.findByJobSeekerId(seeker.getId());
+        return applicationRepository.findByJobSeeker_Id(seeker.getId());
     }
 
     public List<JobApplication> employerApplicants(String email) {
         EmployerProfile employer = employerProfileRepository
                 .findByUserEmail(email)
                 .orElseThrow(() -> new RuntimeException("Employer profile not found"));
-        return applicationRepository.findByJobEmployerId(employer.getId());
+        return applicationRepository.findByJob_Employer_Id(employer.getId());
     }
 }

@@ -7,9 +7,11 @@ import com.jobportal.server.entity.JobApplication;
 
 public interface JobApplicationRepository extends JpaRepository<JobApplication, Long> {
 
-    boolean existsByJobIdAndJobSeekerId(Long jobId, Long jobSeekerId);
+    boolean existsByJob_IdAndJobSeeker_Id(Long jobId, Long jobSeekerId);
 
-    List<JobApplication> findByJobSeekerId(Long jobSeekerId);
+    List<JobApplication> findByJobSeeker_Id(Long jobSeekerId);
 
-    List<JobApplication> findByJobEmployerId(Long employerId);
+    List<JobApplication> findByJob_Employer_Id(Long employerId); 
+
+    List<JobApplication> findByJob_Id(Long jobId);
 }

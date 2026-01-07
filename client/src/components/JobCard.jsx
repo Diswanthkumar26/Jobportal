@@ -1,5 +1,26 @@
 // src/components/JobCard.jsx
 const JobCard = ({ job, onOpen, onSave, isSaved }) => {
+  // derive fields from backend + mock shape
+  const jobTypeRaw = (job.jobType || job.type || "").trim();
+
+  const jobTypeLabel = (() => {
+    if (!jobTypeRaw) return "Full-time";
+    const t = jobTypeRaw.toUpperCase();
+    if (t === "FULL_TIME") return "Full-time";
+    if (t === "PART_TIME") return "Part-time";
+    if (t === "INTERNSHIP") return "Internship";
+    if (t === "CONTRACT") return "Contract";
+    if (t === "FREELANCE") return "Freelance";
+    return jobTypeRaw;
+  })();
+
+  const salaryText =
+    job.salaryRange && job.salaryRange.trim().length > 0
+      ? job.salaryRange
+      : job.salaryMin != null && job.salaryMax != null
+      ? `₹${job.salaryMin} - ₹${job.salaryMax} LPA`
+      : "₹ - ₹ LPA";
+
   return (
     <article
       onClick={() => onOpen?.(job)}
@@ -26,7 +47,7 @@ const JobCard = ({ job, onOpen, onSave, isSaved }) => {
         {/* Right side: type badge + save icon */}
         <div className="flex items-start gap-2">
           <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] md:text-[11px] font-medium text-emerald-700">
-            {job.type || "Full-time"}
+            {jobTypeLabel}
           </span>
 
           {/* Save icon (stop click from opening details) */}
@@ -54,9 +75,7 @@ const JobCard = ({ job, onOpen, onSave, isSaved }) => {
 
       {/* Meta row */}
       <div className="mt-3 flex flex-wrap items-center gap-3 text-[11px] md:text-xs text-slate-500">
-        <span>
-          ₹{job.salaryMin} - ₹{job.salaryMax} LPA
-        </span>
+        <span>₹ {salaryText}</span>
         <span className="w-1 h-1 rounded-full bg-slate-300" />
         <span>{job.experience || "0-2 yrs"}</span>
         <span className="w-1 h-1 rounded-full bg-slate-300" />

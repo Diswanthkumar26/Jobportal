@@ -1,7 +1,10 @@
 package com.jobportal.server.entity.profile;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.jobportal.server.entity.EmployerProfile;
+import com.jobportal.server.entity.JobApplication;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
@@ -35,9 +38,19 @@ public class JobPost {
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Column(name = "job_type")
+    private String jobType;
+
     @ManyToOne
     @JoinColumn(name = "employer_id")
     private EmployerProfile employer;
+
+
+    @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
+@JsonIgnore
+private List<JobApplication> applications;
+
+
 
     // getters and setters
 
@@ -120,4 +133,7 @@ public class JobPost {
     public void setEmployer(EmployerProfile employer) {
         this.employer = employer;
     }
+
+    public String getJobType() { return jobType; }
+    public void setJobType(String jobType) { this.jobType = jobType; }
 }

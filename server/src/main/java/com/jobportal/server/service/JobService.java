@@ -45,4 +45,27 @@ public class JobService {
     public Optional<JobPost> findById(Long id) {
         return jobRepository.findById(id);
     }
+
+    public Optional<JobPost> updateJob(Long id, JobPost updated, String employerEmail) {
+    JobPost existing = jobRepository.findById(id).orElse(null);
+    if (existing == null) return Optional.empty();
+
+    // ensure the job belongs to this employer
+    if (!existing.getEmployer().getUser().getEmail().equals(employerEmail)) {
+        return Optional.empty(); // or throw 403
+    }
+
+    existing.setTitle(updated.getTitle());
+    existing.setCompany(updated.getCompany());
+    existing.setLocation(updated.getLocation());
+    existing.setSalaryRange(updated.getSalaryRange());
+    existing.setExperience(updated.getExperience());
+    existing.setJobType(updated.getJobType());
+    existing.setDescription(updated.getDescription());
+    // any other fields you want editable
+
+    JobPost saved = jobRepository.save(existing);
+    return Optional.of(saved);
+}
+
 }

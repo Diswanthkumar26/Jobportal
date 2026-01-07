@@ -11,7 +11,6 @@ export default function EmployerJobsList() {
   const load = async () => {
     try {
       setLoading(true);
-      // backend: return jobs for logged-in employer
       const res = await api.get("/employer/jobs");
       setJobs(res.data);
     } catch (err) {
@@ -29,11 +28,29 @@ export default function EmployerJobsList() {
   if (loading) return <p className="p-4 text-sm text-slate-500">Loading…</p>;
 
   if (!jobs.length)
-    return <p className="p-4 text-sm text-slate-500">No jobs yet.</p>;
+    return (
+      <div className="p-4">
+        <p className="mb-2 text-sm text-slate-500">No jobs yet.</p>
+        <Link
+          to="/employer/jobs/new"
+          className="text-sm text-indigo-600 hover:underline"
+        >
+          Post your first job
+        </Link>
+      </div>
+    );
 
   return (
     <div className="p-4">
-      <h1 className="mb-4 text-lg font-semibold text-slate-900">Jobs</h1>
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="text-lg font-semibold text-slate-900">Jobs</h1>
+        <Link
+          to="/employer/jobs/new"
+          className="text-sm text-indigo-600 hover:underline"
+        >
+          + Post new job
+        </Link>
+      </div>
 
       <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200">
         {jobs.map((job) => (
@@ -47,7 +64,6 @@ export default function EmployerJobsList() {
             </div>
 
             <div className="flex gap-4 text-xs font-medium">
-              {/* EMPLOYER view route */}
               <Link
                 to={`/employer/jobs/${job.id}`}
                 className="text-indigo-600 hover:underline"
@@ -55,7 +71,6 @@ export default function EmployerJobsList() {
                 View
               </Link>
 
-              {/* Applicants page route */}
               <Link
                 to={`/employer/jobs/${job.id}/applicants`}
                 className="text-slate-600 hover:underline"

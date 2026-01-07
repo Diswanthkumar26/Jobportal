@@ -37,6 +37,7 @@ public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
 .authorizeHttpRequests(auth -> auth
     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+    .requestMatchers("/error").permitAll() 
     .requestMatchers("/api/auth/**").permitAll()
 
     .requestMatchers(HttpMethod.GET, "/api/jobs", "/api/jobs/**").permitAll()
@@ -46,6 +47,7 @@ public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     .requestMatchers(HttpMethod.DELETE, "/api/jobs/**").authenticated()
     .requestMatchers("/api/employer/**").authenticated()
     .requestMatchers("/api/profile/job-seeker/**").authenticated()
+    .requestMatchers("/api/employer/jobs/*/applicants").hasRole("EMPLOYER")
     .requestMatchers("/api/profile/employer/**").authenticated()
     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
     .requestMatchers("/api/users/**").authenticated()

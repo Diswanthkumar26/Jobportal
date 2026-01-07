@@ -87,64 +87,82 @@ export default function App() {
           }
         />
 
-        {/* EMPLOYER NESTED */}
         <Route
-          path="/employer"
-          element={
-            <PrivateRoute>
-              <EmployerLayout />
-            </PrivateRoute>
-          }
-        >
-          <Route
-            path="home"
-            element={
-              <PrivateRoute>
-                <EmployerHome />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="jobs"
-            element={
-              <PrivateRoute>
-                <EmployerJobsPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="jobs/:id"
-            element={
-              <PrivateRoute>
-                <EmployerJobDetails />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="jobs/:jobId/applicants"
-            element={
-              <PrivateRoute>
-                <EmployerJobApplicantsPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="candidates"
-            element={
-              <PrivateRoute>
-                <EmployerCandidatesPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="jobs/post"
-            element={
-              <PrivateRoute>
-                <JobPostPage />
-              </PrivateRoute>
-            }
-          />
-        </Route>
+  path="/employer"
+  element={
+    <PrivateRoute>
+      <EmployerLayout />
+    </PrivateRoute>
+  }
+>
+  <Route
+    path="home"
+    element={
+      <PrivateRoute>
+        <EmployerHome />
+      </PrivateRoute>
+    }
+  />
+  <Route
+    path="jobs"
+    element={
+      <PrivateRoute>
+        <EmployerJobsPage />
+      </PrivateRoute>
+    }
+  />
+  <Route
+    path="jobs/:id"
+    element={
+      <PrivateRoute>
+        <EmployerJobDetails />
+      </PrivateRoute>
+    }
+  />
+  <Route
+    path="jobs/:jobId/applicants"
+    element={
+      <PrivateRoute>
+        <EmployerJobApplicantsPage />
+      </PrivateRoute>
+    }
+  />
+  <Route
+    path="candidates"
+    element={
+      <PrivateRoute>
+        <EmployerCandidatesPage />
+      </PrivateRoute>
+    }
+  />
+  {/* create job */}
+  <Route
+    path="jobs/post"
+    element={
+      <PrivateRoute>
+        <JobPostPage />
+      </PrivateRoute>
+    }
+  />
+  {/* NEW & EDIT as relative paths */}
+  <Route
+    path="jobs/new"
+    element={
+      <PrivateRoute>
+        <JobPostPage />
+      </PrivateRoute>
+    }
+  />
+  <Route
+    path="jobs/:id/edit"
+    element={
+      <PrivateRoute>
+        <JobPostPage />
+      </PrivateRoute>
+    }
+  />
+</Route>
+
 
         {/* PROFILE EDIT */}
         <Route path="/profile/edit" element={<EditFullProfile />} />
