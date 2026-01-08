@@ -17,52 +17,52 @@ import java.util.List;
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-    @Override
-    protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain
-    ) throws ServletException, IOException {
+@Override
+protected void doFilterInternal(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        FilterChain filterChain
+) throws ServletException, IOException {
 
-        String path = request.getRequestURI();
+    String path = request.getRequestURI();
 
-        // allow /api/auth/** without JWT
-        if (path.startsWith("/api/auth/")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        // allow CORS preflight
-        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        String header = request.getHeader("Authorization");
-        System.out.println("JWT header for " + path + " = " + header);
-        if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
-
-            try {
-                String email = JwtUtil.extractUsername(token);
-                String role = JwtUtil.extractRole(token); 
-                System.out.println("JWT parsed email=" + email + ", role=" + role);
-
-                UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(
-                                email, // principal = email
-                                null,
-                                List.of(new SimpleGrantedAuthority("ROLE_" + role))
-                        );
-
-                SecurityContextHolder.getContext().setAuthentication(auth);
-
-            } catch (Exception e) {
-                SecurityContextHolder.clearContext();
-            }
-        }
-
+    if (path.startsWith("/api/auth/") || "OPTIONS".equalsIgnoreCase(request.getMethod())) {
         filterChain.doFilter(request, response);
-        
+        return;
     }
+
+    String header = request.getHeader("Authorization");
+    System.out.println("JWT header for " + path + " = " + header);
+
+    if (header != null && header.startsWith("Bearer ")) {
+        String token = header.substring(7);
+
+        try {
+            String email = JwtUtil.extractUsername(token);
+            String role = JwtUtil.extractRole(token); // e.g. "JOB_SEEKER" or "EMPLOYER"
+            System.out.println("JWT parsed email=" + email + ", role=" + role);
+
+            // normalize to Spring role format
+            String springRole = switch (role) {
+                case "JOB_SEEKER", "JOBSEEKER" -> "ROLE_JOBSEEKER";
+                case "EMPLOYER" -> "ROLE_EMPLOYER";
+                default -> "ROLE_USER";
+            };
+
+            UsernamePasswordAuthenticationToken auth =
+                new UsernamePasswordAuthenticationToken(
+                    email,
+                    null,
+                    List.of(new SimpleGrantedAuthority(springRole))
+                );
+
+            SecurityContextHolder.getContext().setAuthentication(auth);
+        } catch (Exception e) {
+            e.printStackTrace();
+            SecurityContextHolder.clearContext();
+        }
+    }
+
+    filterChain.doFilter(request, response);
+}
 }

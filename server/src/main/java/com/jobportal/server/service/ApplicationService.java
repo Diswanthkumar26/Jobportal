@@ -1,4 +1,3 @@
-// server/src/main/java/com/jobportal/server/service/ApplicationService.java
 package com.jobportal.server.service;
 
 import java.util.List;
@@ -23,21 +22,18 @@ public class ApplicationService {
     }
 
     public List<JobApplication> getApplicantsForJob(Long jobId, String employerEmail) {
-    JobPost job = jobRepository.findById(jobId)
-            .orElseThrow(() -> new RuntimeException("Job not found"));
+        JobPost job = jobRepository.findById(jobId)
+                .orElseThrow(() -> new RuntimeException("Job not found"));
 
-    if (!job.getEmployer().getUser().getEmail().equals(employerEmail)) {
-        throw new RuntimeException("Not allowed to view applicants");
+        if (job.getEmployer() == null ||
+            job.getEmployer().getUser() == null ||
+            !job.getEmployer().getUser().getEmail().equals(employerEmail)) {
+            throw new RuntimeException("Not allowed to view applicants");
+        }
+
+        List<JobApplication> apps = applicationRepository.findByJob_Id(jobId);
+        System.out.println("jobId=" + jobId + " employer=" + employerEmail
+                + " applicants=" + apps.size());
+        return apps;
     }
-
-    List<JobApplication> apps = applicationRepository.findByJob_Id(jobId);
-    System.out.println("jobId=" + jobId + " employer=" + employerEmail
-            + " applicants=" + apps.size());
-    apps.forEach(a ->
-            System.out.println("appId=" + a.getId()
-                    + " jobId=" + a.getJob().getId()
-                    + " seekerId=" + a.getJobSeeker().getId())
-    );
-    return apps;
-}
 }

@@ -1,4 +1,3 @@
-// EditProfileModal.jsx
 import React, { useState, useEffect } from "react";
 
 export default function EditProfileModal({
@@ -9,8 +8,6 @@ export default function EditProfileModal({
   onChangePhoto,
   onDeletePhoto,
 }) {
-  if (!open) return null;
-
   const [name, setName] = useState("");
   const [headline, setHeadline] = useState("");
   const [location, setLocation] = useState("");
@@ -38,18 +35,18 @@ export default function EditProfileModal({
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "auto";
-    return () => (document.body.style.overflow = "auto");
+    return () => {
+      document.body.style.overflow = "auto";
+    };
   }, [open]);
 
   useEffect(() => {
-  // cleanup previous blob URL when photoUrl changes or modal closes
-  return () => {
-    if (photoUrl && photoUrl.startsWith("blob:")) {
-      URL.revokeObjectURL(photoUrl);
-    }
-  };
-}, [photoUrl]);
-
+    return () => {
+      if (photoUrl && photoUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(photoUrl);
+      }
+    };
+  }, [photoUrl]);
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
@@ -91,7 +88,6 @@ export default function EditProfileModal({
         className="bg-white w-[620px] rounded-2xl p-8 shadow-xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* title + close */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-slate-900">
             Edit profile
@@ -104,7 +100,6 @@ export default function EditProfileModal({
           </button>
         </div>
 
-        {/* photo */}
         <div className="flex flex-col items-center mb-6">
           <div className="w-28 h-28 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center mb-3">
             {photoUrl ? (
@@ -145,7 +140,6 @@ export default function EditProfileModal({
           )}
         </div>
 
-        {/* inputs grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <input
             className="border border-slate-200 p-2 rounded text-sm"

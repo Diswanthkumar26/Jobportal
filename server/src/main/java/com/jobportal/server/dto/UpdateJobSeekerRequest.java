@@ -1,7 +1,9 @@
-// server/src/main/java/com/jobportal/server/dto/UpdateJobSeekerRequest.java
 package com.jobportal.server.dto;
 
-import com.jobportal.server.entity.profile.*;
+import com.jobportal.server.entity.profile.Certification;
+import com.jobportal.server.entity.profile.Education;
+import com.jobportal.server.entity.profile.Experience;
+import com.jobportal.server.entity.profile.Project;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -14,10 +16,14 @@ public class UpdateJobSeekerRequest {
     @Size(max = 2000, message = "About section must be at most 2000 characters")
     private String about;
 
-    private List<@Size(min = 1, max = 50, message = "Skill must be between 1 and 50 characters") String> skills;
+    private List<
+            @Size(min = 1, max = 50, message = "Skill must be between 1 and 50 characters")
+            String> skills;
 
-    @Size(max = 2048, message = "Resume URL is too long")
-    private String resumeUrl;
+    // @Size(max = 2048, message = "Resume URL is too long")
+    // private String resumeUrl;
+
+    // private String resumeFileName;
 
     @Size(max = 100, message = "Headline must be at most 100 characters")
     private String headline;

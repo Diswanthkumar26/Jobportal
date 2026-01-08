@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import {
   getJobSeekerProfile,
   updateJobSeekerProfile,
+  updateJobSeekerResume,
 } from "../../services/profileApi";
 
 import ProfileHeader from "../../components/dashboard/jobseeker/ProfileHeader";
@@ -30,6 +31,7 @@ export default function JobSeekerDashboard() {
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
+
   const [profile, setProfile] = useState({
     name: "",
     headline: "",
@@ -49,8 +51,11 @@ export default function JobSeekerDashboard() {
   const [projects, setProjects] = useState([]);
   const [education, setEducation] = useState([]);
   const [certifications, setCertifications] = useState([]);
+
+  // resume
   const [resumeStatus, setResumeStatus] = useState("No resume uploaded");
   const [resumeUrl, setResumeUrl] = useState(null);
+  const [openResumeModal, setOpenResumeModal] = useState(false);
 
   const [openProfileModal, setOpenProfileModal] = useState(false);
   const [openAboutModal, setOpenAboutModal] = useState(false);
@@ -59,7 +64,6 @@ export default function JobSeekerDashboard() {
   const [openSkillsModal, setOpenSkillsModal] = useState(false);
   const [openEducationModal, setOpenEducationModal] = useState(false);
   const [openCertModal, setOpenCertModal] = useState(false);
-  const [openResumeModal, setOpenResumeModal] = useState(false);
 
   const [editingExpIndex, setEditingExpIndex] = useState(null);
   const [editingProjectIndex, setEditingProjectIndex] = useState(null);
@@ -84,27 +88,85 @@ export default function JobSeekerDashboard() {
     setLoading(true);
     try {
       const res = await getJobSeekerProfile();
-      const u = res.data;
-      setProfile({
-        name: u.name,
-        headline: u.headline,
-        location: u.location,
-        photoUrl: u.photoUrl,
-        company: u.company,
-        experienceText: u.experienceText,
-        ctc: u.ctc,
-        phone: u.phone,
-        email: u.email,
-        noticePeriod: u.noticePeriod,
-      });
-      setAbout(u.about || "");
-      setSkills(u.skills || []);
-      setExperience(u.experiences || []);
-      setProjects(u.projects || []);
-      setEducation(u.education || []);
-      setCertifications(u.certifications || []);
-      setResumeUrl(u.resumeUrl || null);
-      setResumeStatus(u.resumeUrl ? "Uploaded" : "No resume uploaded");
+      const p = res.data;
+      const u = p.user || {};
+      console.log("jobseeker profile from API", p);
+
+      const mappedProfile = {
+        name: `${p.firstName ?? ""} ${p.lastName ?? ""}`.trim(),
+        headline: p.currentRole || "",
+        location: p.currentCity || "",
+        photoUrl: u.photoUrl || "",
+        company: "Your company",
+        experienceText: p.totalExperience || "",
+        ctc: p.expectedSalary || "",
+        phone: p.phone || u.phone || "",
+        email: u.email || "",
+        noticePeriod: p.noticePeriod || "",
+      };
+      setProfile(mappedProfile);
+
+      setAbout(p.about || u.about || "");
+
+      if (p.skills) {
+        setSkills(
+          p.skills
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
+        );
+      } else if (Array.isArray(u.skills)) {
+        setSkills(u.skills);
+      } else {
+        setSkills([]);
+      }
+
+      if (p.experiencesJson) {
+        setExperience(JSON.parse(p.experiencesJson));
+      } else if (Array.isArray(u.experiences)) {
+        setExperience(u.experiences);
+      } else {
+        setExperience([]);
+      }
+
+      if (p.projectsJson) {
+        setProjects(JSON.parse(p.projectsJson));
+      } else if (Array.isArray(u.projects)) {
+        setProjects(u.projects);
+      } else {
+        setProjects([]);
+      }
+
+      if (p.educationJson) {
+        setEducation(JSON.parse(p.educationJson));
+      } else if (Array.isArray(u.education)) {
+        setEducation(u.education);
+      } else {
+        setEducation([]);
+      }
+
+      if (p.certificationsJson) {
+        setCertifications(JSON.parse(p.certificationsJson));
+      } else if (Array.isArray(u.certifications)) {
+        setCertifications(u.certifications);
+      } else {
+        setCertifications([]);
+      }
+
+      // ------- resume fields -------
+      const ru = p.resumeUrl || p.resume_url || null;
+      setResumeUrl(ru);
+
+      if (p.resumeFileName || p.resume_file_name) {
+        setResumeStatus(p.resumeFileName || p.resume_file_name);
+      } else if (ru) {
+        setResumeStatus("Uploaded");
+      } else {
+        setResumeStatus("No resume uploaded");
+      }
+      // ------------------------------
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -112,12 +174,34 @@ export default function JobSeekerDashboard() {
 
   const sendUpdate = async (patch) => {
     if (!userId) return;
+    console.log("PATCH to /api/profile/job-seeker:", JSON.stringify(patch));
     try {
       await updateJobSeekerProfile(patch);
       await loadProfile();
     } catch (err) {
-      console.error(err);
-      alert("Update failed");
+      console.error("Update failed", err.response?.status, err.response?.data);
+      alert(
+        "Update failed: " +
+          (typeof err.response?.data === "string"
+            ? err.response.data
+            : JSON.stringify(err.response?.data || {}))
+      );
+    }
+  };
+
+  const sendResumeUpdate = async (patch) => {
+    try {
+      console.log("PATCH to /profile/job-seeker/resume:", patch);
+      await updateJobSeekerResume(patch);
+      await loadProfile();
+    } catch (err) {
+      console.error("Update failed", err.response?.status, err.response?.data);
+      alert(
+        "Update failed: " +
+          (typeof err.response?.data === "string"
+            ? err.response.data
+            : JSON.stringify(err.response?.data || {}))
+      );
     }
   };
 
@@ -177,7 +261,7 @@ export default function JobSeekerDashboard() {
 
           <ResumeUpload
             resumeStatus={resumeStatus}
-            onOpen={() => openModal(setOpenResumeModal)}
+            onUpload={() => setOpenResumeModal(true)}
           />
 
           <AboutSection
@@ -267,13 +351,22 @@ export default function JobSeekerDashboard() {
         initial={profile}
         onClose={() => closeModal(setOpenProfileModal)}
         onChangePhoto={(file) => {
-          // implement upload logic then update profile & sendUpdate
+          console.log("new photo file", file);
         }}
         onDeletePhoto={() => {
           setProfile((prev) => ({ ...prev, photoUrl: null }));
+          sendUpdate({ photoUrl: null });
         }}
         onSave={async (data) => {
-          await sendUpdate(data);
+          setProfile((prev) => ({ ...prev, ...data }));
+
+          const patch = {
+            headline: data.headline,
+            location: data.location,
+            photoUrl: data.photoUrl,
+          };
+
+          await sendUpdate(patch);
         }}
       />
 
@@ -293,17 +386,16 @@ export default function JobSeekerDashboard() {
         }
         onClose={() => closeModal(setOpenExperienceModal)}
         onSave={async (item) => {
+          let updated;
           if (editingExpIndex === null) {
-            const updated = [...experience, item];
-            setExperience(updated);
-            await sendUpdate({ experiences: updated });
+            updated = [...experience, item];
           } else {
-            const updated = experience.map((exp, idx) =>
+            updated = experience.map((exp, idx) =>
               idx === editingExpIndex ? { ...exp, ...item } : exp
             );
-            setExperience(updated);
-            await sendUpdate({ experiences: updated });
           }
+          setExperience(updated);
+          await sendUpdate({ experiences: updated });
         }}
       />
 
@@ -314,17 +406,16 @@ export default function JobSeekerDashboard() {
         }
         onClose={() => closeModal(setOpenProjectModal)}
         onSave={async (item) => {
+          let updated;
           if (editingProjectIndex === null) {
-            const updated = [...projects, item];
-            setProjects(updated);
-            await sendUpdate({ projects: updated });
+            updated = [...projects, item];
           } else {
-            const updated = projects.map((p, idx) =>
+            updated = projects.map((p, idx) =>
               idx === editingProjectIndex ? { ...p, ...item } : p
             );
-            setProjects(updated);
-            await sendUpdate({ projects: updated });
           }
+          setProjects(updated);
+          await sendUpdate({ projects: updated });
         }}
       />
 
@@ -345,17 +436,16 @@ export default function JobSeekerDashboard() {
         }
         onClose={() => setOpenEducationModal(false)}
         onSave={async (item) => {
+          let updated;
           if (editingEduIndex === null) {
-            const updated = [...education, item];
-            setEducation(updated);
-            await sendUpdate({ education: updated });
+            updated = [...education, item];
           } else {
-            const updated = education.map((ed, idx) =>
+            updated = education.map((ed, idx) =>
               idx === editingEduIndex ? { ...ed, ...item } : ed
             );
-            setEducation(updated);
-            await sendUpdate({ education: updated });
           }
+          setEducation(updated);
+          await sendUpdate({ education: updated });
         }}
       />
 
@@ -366,28 +456,32 @@ export default function JobSeekerDashboard() {
         }
         onClose={() => closeModal(setOpenCertModal)}
         onSave={async (item) => {
+          let updated;
           if (editingCertIndex === null) {
-            const updated = [...certifications, item];
-            setCertifications(updated);
-            await sendUpdate({ certifications: updated });
+            updated = [...certifications, item];
           } else {
-            const updated = certifications.map((c, idx) =>
+            updated = certifications.map((c, idx) =>
               idx === editingCertIndex ? { ...c, ...item } : c
             );
-            setCertifications(updated);
-            await sendUpdate({ certifications: updated });
           }
+          setCertifications(updated);
+          await sendUpdate({ certifications: updated });
         }}
       />
 
       <UploadResumeModal
-        open={openResumeModal}
-        onClose={() => closeModal(setOpenResumeModal)}
-        onSave={async (fileUrl) => {
-          setResumeUrl(fileUrl);
-          await sendUpdate({ resumeUrl: fileUrl });
-        }}
-      />
+  open={openResumeModal}
+  onClose={() => setOpenResumeModal(false)}
+  onSave={async (fileUrl, fileName) => {
+    setResumeUrl(fileUrl);
+    setResumeStatus(fileName || "Uploaded");
+    await sendResumeUpdate({
+      resumeUrl: fileUrl,
+      resumeFileName: fileName,
+    });
+  }}
+/>
+
     </div>
   );
 }

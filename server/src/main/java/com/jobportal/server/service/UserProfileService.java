@@ -2,7 +2,10 @@ package com.jobportal.server.service;
 
 import com.jobportal.server.dto.UpdateJobSeekerRequest;
 import com.jobportal.server.entity.User;
-import com.jobportal.server.entity.profile.*;
+import com.jobportal.server.entity.profile.Certification;
+import com.jobportal.server.entity.profile.Education;
+import com.jobportal.server.entity.profile.Experience;
+import com.jobportal.server.entity.profile.Project;
 import com.jobportal.server.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +33,8 @@ public class UserProfileService {
 
         if (req.getAbout() != null) u.setAbout(req.getAbout());
         if (req.getSkills() != null) u.setSkills(req.getSkills());
-        if (req.getResumeUrl() != null) u.setResumeUrl(req.getResumeUrl());
+
+       
 
         if (req.getHeadline() != null) u.setHeadline(req.getHeadline());
         if (req.getLocation() != null) u.setLocation(req.getLocation());
@@ -38,34 +42,34 @@ public class UserProfileService {
 
         // experiences
         if (req.getExperiences() != null) {
-    u.getExperiences().clear();
-    for (Experience in : req.getExperiences()) {
-        Experience e = new Experience();
-        e.setTitle(in.getTitle());
-        e.setCompany(in.getCompany());
-        e.setLocation(in.getLocation());
-        e.setStartDate(in.getStartDate());
-        e.setEndDate(in.getEndDate());
-        e.setDescription(in.getDescription());
-        e.setCurrent(in.isCurrent());   // <— add this
-        e.setUser(u);
-        u.getExperiences().add(e);
-    }
-}
+            u.getExperiences().clear();
+            for (Experience in : req.getExperiences()) {
+                Experience e = new Experience();
+                e.setTitle(in.getTitle());
+                e.setCompany(in.getCompany());
+                e.setLocation(in.getLocation());
+                e.setStartDate(in.getStartDate());
+                e.setEndDate(in.getEndDate());
+                e.setDescription(in.getDescription());
+                e.setCurrent(in.isCurrent());
+                e.setUser(u);
+                u.getExperiences().add(e);
+            }
+        }
 
         // projects
-       if (req.getProjects() != null) {
-    u.getProjects().clear();
-    for (Project in : req.getProjects()) {
-        Project p = new Project();
-        p.setName(in.getName());
-        p.setPeriod(in.getPeriod());
-        p.setLink(in.getLink());
-        p.setDescription(in.getDescription());
-        p.setUser(u);
-        u.getProjects().add(p);
-    }
-}
+        if (req.getProjects() != null) {
+            u.getProjects().clear();
+            for (Project in : req.getProjects()) {
+                Project p = new Project();
+                p.setName(in.getName());
+                p.setPeriod(in.getPeriod());
+                p.setLink(in.getLink());
+                p.setDescription(in.getDescription());
+                p.setUser(u);
+                u.getProjects().add(p);
+            }
+        }
 
         // education
         if (req.getEducation() != null) {

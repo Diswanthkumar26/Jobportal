@@ -32,14 +32,11 @@ public class User {
     private String headline;
     private String location;
     private String photoUrl;
-    
-@Column(nullable = false)
-private boolean enabled = true;
 
-public boolean isEnabled() {
-    return enabled;
-}
+    private String phone;              // <--- NEW
 
+    @Column(nullable = false)
+    private boolean enabled = true;
 
     @ElementCollection
     @CollectionTable(name = "user_skills", joinColumns = @JoinColumn(name = "user_id"))
@@ -47,28 +44,28 @@ public boolean isEnabled() {
     private List<String> skills = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL,
-               orphanRemoval = true, fetch = FetchType.LAZY)
+            orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnoreProperties("user")
     private List<Experience> experiences = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL,
-               orphanRemoval = true, fetch = FetchType.LAZY)
+            orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnoreProperties("user")
     private List<Project> projects = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL,
-               orphanRemoval = true, fetch = FetchType.LAZY)
+            orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnoreProperties("user")
     private List<Education> education = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL,
-               orphanRemoval = true, fetch = FetchType.LAZY)
+            orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnoreProperties("user")
     private List<Certification> certifications = new ArrayList<>();
 
     private String resumeUrl;
 
-    // getters/setters ...
+    // getters/setters
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -101,6 +98,12 @@ public boolean isEnabled() {
 
     public String getPhotoUrl() { return photoUrl; }
     public void setPhotoUrl(String photoUrl) { this.photoUrl = photoUrl; }
+
+    public String getPhone() { return phone; }        // <---
+    public void setPhone(String phone) { this.phone = phone; }
+
+    public boolean isEnabled() { return enabled; }
+    public void setEnabled(boolean enabled) { this.enabled = enabled; }
 
     public List<String> getSkills() { return skills; }
     public void setSkills(List<String> skills) { this.skills = skills; }

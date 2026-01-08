@@ -19,51 +19,28 @@ public class JobApplication {
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "job_id")
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler","employer"})
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "employer", "applications"})
     private JobPost job;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "jobseeker_id")
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler","applications"})
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "applications"})
     private JobSeekerProfile jobSeeker;
 
     @Column(nullable = false)
     private LocalDateTime appliedAt = LocalDateTime.now();
 
-    public JobApplication() {
-    }
+    public JobApplication() {}
 
-    // getters and setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public Long getId() {
-        return id;
-    }
+    public JobPost getJob() { return job; }
+    public void setJob(JobPost job) { this.job = job; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public JobSeekerProfile getJobSeeker() { return jobSeeker; }
+    public void setJobSeeker(JobSeekerProfile jobSeeker) { this.jobSeeker = jobSeeker; }
 
-    public JobPost getJob() {
-        return job;
-    }
-
-    public void setJob(JobPost job) {
-        this.job = job;
-    }
-
-    public JobSeekerProfile getJobSeeker() {
-        return jobSeeker;
-    }
-
-    public void setJobSeeker(JobSeekerProfile jobSeeker) {
-        this.jobSeeker = jobSeeker;
-    }
-
-    public LocalDateTime getAppliedAt() {
-        return appliedAt;
-    }
-
-    public void setAppliedAt(LocalDateTime appliedAt) {
-        this.appliedAt = appliedAt;
-    }
+    public LocalDateTime getAppliedAt() { return appliedAt; }
+    public void setAppliedAt(LocalDateTime appliedAt) { this.appliedAt = appliedAt; }
 }

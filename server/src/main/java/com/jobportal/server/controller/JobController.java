@@ -3,7 +3,7 @@ package com.jobportal.server.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import com.jobportal.server.entity.JobApplication;
@@ -16,7 +16,6 @@ import com.jobportal.server.service.ApplicationService;
 public class JobController {
 
     private final JobService jobService;
-
     private final ApplicationService applicationService;
 
     public JobController(JobService jobService,
@@ -26,20 +25,22 @@ public class JobController {
     }
 
     @PostMapping("/jobs")
-public JobPost createJobAlias(@RequestBody JobPost jobPost,
-                              @AuthenticationPrincipal String email) {
-    return jobService.createJob(jobPost, email);
-}
-
+    public JobPost createJobAlias(@RequestBody JobPost jobPost,
+                                  Authentication authentication) {
+        String email = authentication.getName();
+        return jobService.createJob(jobPost, email);
+    }
 
     @PostMapping("/employer/jobs")
     public JobPost createJob(@RequestBody JobPost jobPost,
-                             @AuthenticationPrincipal String email) {
+                             Authentication authentication) {
+        String email = authentication.getName();
         return jobService.createJob(jobPost, email);
     }
 
     @GetMapping("/employer/jobs")
-    public List<JobPost> employerJobs(@AuthenticationPrincipal String email) {
+    public List<JobPost> employerJobs(Authentication authentication) {
+        String email = authentication.getName();
         return jobService.getEmployerJobs(email);
     }
 
@@ -55,21 +56,20 @@ public JobPost createJobAlias(@RequestBody JobPost jobPost,
                 .orElse(ResponseEntity.notFound().build());
     }
 
-        @GetMapping("/employer/jobs/{jobId}/applicants")
+    @GetMapping("/employer/jobs/{jobId}/applicants")
     public List<JobApplication> getApplicantsForJob(@PathVariable Long jobId,
-                                                    @AuthenticationPrincipal String email) {
+                                                    Authentication authentication) {
+        String email = authentication.getName();
         return applicationService.getApplicantsForJob(jobId, email);
     }
 
-
-
     @PutMapping("/employer/jobs/{id}")
-public ResponseEntity<JobPost> updateJob(@PathVariable Long id,
-                                         @RequestBody JobPost updated,
-                                         @AuthenticationPrincipal String email) {
-    return jobService.updateJob(id, updated, email)
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
-}
-
+    public ResponseEntity<JobPost> updateJob(@PathVariable Long id,
+                                             @RequestBody JobPost updated,
+                                             Authentication authentication) {
+        String email = authentication.getName();
+        return jobService.updateJob(id, updated, email)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 }

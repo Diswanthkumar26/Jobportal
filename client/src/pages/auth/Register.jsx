@@ -74,15 +74,33 @@ export default function Register() {
       setLoading(true);
 
       const res = await api.post("/auth/register", {
-        ...form,
-        phone: `${form.countryCode}${form.phone}`,
-      });
+  ...form,
+  phone: `${form.countryCode}${form.phone}`,
+});
 
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("role", res.data.role);
+// backend now returns LoginResponse
+const {
+  token,
+  role,
+  profileCompleted,
+  email,
+  userId,
+} = res.data;
 
-      toast.success("Registration successful");
-      navigate("/choose-role");
+localStorage.setItem("token", token);
+localStorage.setItem("role", role);
+localStorage.setItem("profileCompleted", String(profileCompleted));
+
+if (email) {
+  localStorage.setItem("email", email.trim().toLowerCase());
+}
+
+if (userId != null) {
+  localStorage.setItem("userId", String(userId));
+}
+
+toast.success("Registration successful");
+navigate("/choose-role");
     } catch (err) {
       toast.error(err.response?.data || "Registration failed");
     } finally {

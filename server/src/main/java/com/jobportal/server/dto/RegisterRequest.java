@@ -7,6 +7,7 @@ public class RegisterRequest {
     private String email;
     private String password;
     private Role role;
+    private String phone;
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -19,4 +20,7 @@ public class RegisterRequest {
 
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
+
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
 }

@@ -5,7 +5,6 @@ import com.jobportal.server.entity.Role;
 import com.jobportal.server.entity.User;
 import com.jobportal.server.repository.UserRepository;
 import com.jobportal.server.security.JwtUtil;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -38,13 +37,14 @@ public class UserController {
                 user.getRole().name()
         );
 
-        return ResponseEntity.ok(
-                new LoginResponse(
-                        token,
-                        user.getRole().name(),
-                        user.isProfileCompleted(),
-                        user.getId() 
-                )
+        LoginResponse resp = new LoginResponse(
+                token,
+                user.getRole().name(),
+                user.isProfileCompleted(),
+                user.getId(),
+                user.getEmail()
         );
+
+        return ResponseEntity.ok(resp);
     }
 }

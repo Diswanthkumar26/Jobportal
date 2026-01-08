@@ -1,16 +1,15 @@
 package com.jobportal.server.controller;
+
 import com.jobportal.server.dto.LoginRequest;
 import com.jobportal.server.dto.LoginResponse;
+import com.jobportal.server.dto.RegisterRequest;
 import com.jobportal.server.entity.Role;
 import com.jobportal.server.entity.User;
 import com.jobportal.server.repository.UserRepository;
 import com.jobportal.server.security.JwtUtil;
-import com.jobportal.server.dto.RegisterRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -36,8 +35,9 @@ public class AuthController {
         user.setName(req.getName());
         user.setEmail(req.getEmail());
         user.setPassword(encoder.encode(req.getPassword()));
-        user.setRole(Role.JOBSEEKER); // default
+        user.setRole(req.getRole() != null ? req.getRole() : Role.JOBSEEKER);
         user.setProfileCompleted(false);
+        user.setPhone(req.getPhone());
 
         userRepo.save(user);
 
@@ -46,12 +46,16 @@ public class AuthController {
                 user.getRole().name()
         );
 
-        return ResponseEntity.ok(
-                Map.of(
-                        "token", token,
-                        "role", user.getRole().name()
-                )
+        
+        LoginResponse resp = new LoginResponse(
+                token,
+                user.getRole().name(),
+                user.isProfileCompleted(),
+                user.getId(),
+                user.getEmail()
         );
+
+        return ResponseEntity.ok(resp);
     }
 
     @PostMapping("/login")
@@ -69,13 +73,14 @@ public class AuthController {
                 user.getRole().name()
         );
 
-        return ResponseEntity.ok(
-                new LoginResponse(
-                        token,
-                        user.getRole().name(),
-                        user.isProfileCompleted(),
-                        user.getId() 
-                )
+        LoginResponse resp = new LoginResponse(
+                token,
+                user.getRole().name(),
+                user.isProfileCompleted(),
+                user.getId(),
+                user.getEmail()
         );
+
+        return ResponseEntity.ok(resp);
     }
 }

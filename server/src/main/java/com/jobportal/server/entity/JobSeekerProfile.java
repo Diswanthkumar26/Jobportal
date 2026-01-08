@@ -31,8 +31,36 @@ public class JobSeekerProfile {
     @Column(length = 2000)
     private String about;
 
+    @Column(name = "resume_url")
     private String resumeUrl;
+
+    @Column(name = "resume_file_name")
+    private String resumeFileName;
+
     private String linkedin;
+    private String phone;
+    private String noticePeriod;
+
+    @Column(length = 2000)
+    private String skills;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String experiencesJson;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String projectsJson;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String educationJson;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String certificationsJson;
+
+    // getters/setters
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -90,6 +118,30 @@ public class JobSeekerProfile {
     public String getResumeUrl() { return resumeUrl; }
     public void setResumeUrl(String resumeUrl) { this.resumeUrl = resumeUrl; }
 
+    public String getResumeFileName() { return resumeFileName; }
+    public void setResumeFileName(String resumeFileName) { this.resumeFileName = resumeFileName; }
+
     public String getLinkedin() { return linkedin; }
     public void setLinkedin(String linkedin) { this.linkedin = linkedin; }
+
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+
+    public String getNoticePeriod() { return noticePeriod; }
+    public void setNoticePeriod(String noticePeriod) { this.noticePeriod = noticePeriod; }
+
+    public String getSkills() { return skills; }
+    public void setSkills(String skills) { this.skills = skills; }
+
+    public String getExperiencesJson() { return experiencesJson; }
+    public void setExperiencesJson(String experiencesJson) { this.experiencesJson = experiencesJson; }
+
+    public String getProjectsJson() { return projectsJson; }
+    public void setProjectsJson(String projectsJson) { this.projectsJson = projectsJson; }
+
+    public String getEducationJson() { return educationJson; }
+    public void setEducationJson(String educationJson) { this.educationJson = educationJson; }
+
+    public String getCertificationsJson() { return certificationsJson; }
+    public void setCertificationsJson(String certificationsJson) { this.certificationsJson = certificationsJson; }
 }

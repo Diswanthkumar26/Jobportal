@@ -14,10 +14,13 @@ export default function EmployerJobApplicantsPage() {
     const load = async () => {
       try {
         setLoading(true);
+
+        // Load job details
         const jobRes = await api.get(`/jobs/${jobId}`);
         setJob(jobRes.data);
 
-        const res = await api.get(`/employer/jobs/${jobId}/applicants`);
+        // Load applicants for this job (employer endpoint)
+        const res = await api.get(`/employer/jobs/${jobId}/applications`);
         setApplicants(res.data || []);
       } catch (err) {
         console.error(err);
@@ -26,6 +29,7 @@ export default function EmployerJobApplicantsPage() {
         setLoading(false);
       }
     };
+
     load();
   }, [jobId]);
 
@@ -62,20 +66,45 @@ export default function EmployerJobApplicantsPage() {
         <p className="text-sm text-slate-500">No applications yet.</p>
       ) : (
         <ul className="divide-y divide-slate-100">
-          {applicants.map((app) => (
-            <li key={app.id} className="py-3 flex items-center justify-between">
+          {applicants.map((a) => (
+            <li
+              key={a.applicationId}
+              className="py-3 flex items-center justify-between"
+            >
               <div>
                 <p className="text-sm font-medium text-slate-900">
-                  {app.jobSeeker?.name || app.applicantName}
+                  {a.name}
                 </p>
+
+                {a.headline && (
+                  <p className="text-xs text-slate-500">{a.headline}</p>
+                )}
+
                 <p className="text-xs text-slate-500">
-                  {app.jobSeeker?.email || app.applicantEmail}
+                  {a.location || "Location not specified"}
                 </p>
+
+                <p className="text-xs text-slate-500">
+                  {a.email}
+                  {a.phone && <> · {a.phone}</>}
+                </p>
+
+                {a.totalExperience && (
+                  <p className="text-xs text-slate-500">
+                    Experience: {a.totalExperience}
+                  </p>
+                )}
+
+                {a.keySkills && (
+                  <p className="text-xs text-slate-500">
+                    Skills: {a.keySkills}
+                  </p>
+                )}
               </div>
 
-              {app.jobSeeker?.resumeUrl && (
+              {a.resumeUrl && (
                 <a
-                  href={app.jobSeeker.resumeUrl}
+                  href={a.resumeUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="text-xs font-medium text-indigo-600 hover:underline"

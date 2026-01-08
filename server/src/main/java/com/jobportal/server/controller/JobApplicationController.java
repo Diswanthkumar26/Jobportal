@@ -1,11 +1,10 @@
-// server/src/main/java/com/jobportal/server/controller/JobApplicationController.java
 package com.jobportal.server.controller;
 
 import java.util.List;
 
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
 import com.jobportal.server.entity.JobApplication;
 import com.jobportal.server.service.JobApplicationService;
 
@@ -21,19 +20,20 @@ public class JobApplicationController {
 
     @PostMapping("/{jobId}")
     public JobApplication apply(@PathVariable Long jobId,
-                                @AuthenticationPrincipal String email) {
+                                Authentication authentication) {
+        String email = authentication.getName();
         return applicationService.apply(jobId, email);
     }
 
     @GetMapping("/{jobId}/applied")
     public boolean isApplied(@PathVariable Long jobId,
-                             @AuthenticationPrincipal String email) {
+                             Authentication authentication) {
+        String email = authentication.getName();
         return applicationService.isApplied(jobId, email);
     }
 
     @GetMapping("/me")
     public List<JobApplication> myApplications(Authentication authentication) {
-         System.out.println("AUTH = " + authentication);
         String email = authentication.getName();
         return applicationService.myApplications(email);
     }
