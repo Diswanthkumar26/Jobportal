@@ -171,4 +171,21 @@ public class JobSeekerProfileController {
         JobSeekerProfile saved = jobSeekerRepo.save(existing);
         return ResponseEntity.ok(saved);
     }
+
+    @DeleteMapping("/resume")
+public ResponseEntity<?> deleteResume(Authentication authentication) {
+    String email = authentication.getName();
+
+    JobSeekerProfile existing = jobSeekerRepo
+        .findByUser_Email(email)
+        .orElseThrow(() -> new RuntimeException("Jobseeker profile not found"));
+
+    existing.setResumeUrl(null);
+    existing.setResumeFileName(null);
+
+    jobSeekerRepo.save(existing);
+
+    return ResponseEntity.ok().build();
+}
+
 }

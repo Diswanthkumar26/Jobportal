@@ -8,7 +8,7 @@ import {
 } from "react-icons/fi";
 
 export default function ProfileHeader({ profile, onEdit }) {
-  const completion = 72;
+  // const completion = 72;
 
   return (
     <section className="bg-white rounded-2xl border border-slate-200 px-6 py-5 shadow-sm">
@@ -33,11 +33,11 @@ export default function ProfileHeader({ profile, onEdit }) {
               </div>
             </div>
 
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2">
+            {/* <div className="absolute -bottom-2 left-1/2 -translate-x-1/2">
               <div className="rounded-full bg-white border border-indigo-200 px-3 py-0.5 text-[11px] font-medium text-indigo-700 shadow-sm">
                 Profile {completion}%
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* name + meta */}

@@ -1,5 +1,5 @@
 // src/pages/dashboard/JobSeekerDashboard.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   getJobSeekerProfile,
@@ -235,6 +235,44 @@ export default function JobSeekerDashboard() {
     await sendUpdate({ skills: updated });
   };
 
+  const completeness = useMemo(() => {
+  let filledParts = 0;
+  const totalParts = 7; // basic header, about, experience, projects, skills, resume, certifications
+
+  const hasBasic =
+    (profile.name && profile.name.trim().length > 0) ||
+    (profile.headline && profile.headline.trim().length > 0) ||
+    (profile.location && profile.location.trim().length > 0) ||
+    (profile.photoUrl && profile.photoUrl.trim().length > 0);
+
+  if (hasBasic) filledParts += 1;
+  if (about) filledParts += 1;
+  if (experience.length) filledParts += 1;
+  if (projects.length) filledParts += 1;
+  if (skills.length) filledParts += 1;
+  if (resumeUrl) filledParts += 1;
+  if (certifications.length) filledParts += 1;
+
+  return Math.round((filledParts / totalParts) * 100);
+}, [
+  profile.name,
+  profile.headline,
+  profile.location,
+  profile.photoUrl,
+  about,
+  experience.length,
+  projects.length,
+  skills.length,
+  resumeUrl,
+  certifications.length,
+]);
+
+// inject into profile so Navbar can use it
+const profileWithCompleteness = {
+  ...profile,
+  profileCompletedPercentage: completeness,
+};
+
   if (!userId) {
     return (
       <div className="p-6 text-center text-sm text-red-500">
@@ -250,7 +288,7 @@ export default function JobSeekerDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-100 pb-20">
-      <Navbar profile={profile} />
+      <Navbar profile={profileWithCompleteness} />
 
       <main className="max-w-6xl mx-auto px-2 md:px-4 py-4 md:py-6 flex gap-4">
         <div className="flex-1 space-y-4">
@@ -261,6 +299,7 @@ export default function JobSeekerDashboard() {
 
           <ResumeUpload
             resumeStatus={resumeStatus}
+            resumeUrl={resumeUrl}
             onUpload={() => setOpenResumeModal(true)}
           />
 
@@ -336,10 +375,13 @@ export default function JobSeekerDashboard() {
               Profile completeness
             </h3>
             <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-              <div className="h-full w-2/3 bg-indigo-500" />
+              <div
+                className="h-full bg-indigo-500 transition-all"
+                style={{ width: `${completeness}%` }}
+              />
             </div>
             <p className="text-[11px] text-slate-500 mt-2">
-              Complete your About, Experience & Projects.
+              Profile {completeness}% complete.
             </p>
           </section>
         </aside>
@@ -470,18 +512,34 @@ export default function JobSeekerDashboard() {
       />
 
       <UploadResumeModal
-  open={openResumeModal}
-  onClose={() => setOpenResumeModal(false)}
-  onSave={async (fileUrl, fileName) => {
-    setResumeUrl(fileUrl);
-    setResumeStatus(fileName || "Uploaded");
-    await sendResumeUpdate({
-      resumeUrl: fileUrl,
-      resumeFileName: fileName,
-    });
-  }}
-/>
+        open={openResumeModal}
+        currentResume={
+          resumeStatus !== "No resume uploaded" && resumeUrl
+            ? { fileName: resumeStatus, url: resumeUrl }
+            : null
+        }
+        onClose={() => setOpenResumeModal(false)}
+        onSave={async (fileUrl, fileName) => {
+          // deleted case
+          if (fileUrl === null && fileName === null) {
+            setResumeUrl(null);
+            setResumeStatus("No resume uploaded");
+            await sendResumeUpdate({
+              resumeUrl: null,
+              resumeFileName: null,
+            });
+            return;
+          }
 
+          // uploaded case
+          setResumeUrl(fileUrl);
+          setResumeStatus(fileName || "Uploaded");
+          await sendResumeUpdate({
+            resumeUrl: fileUrl,
+            resumeFileName: fileName,
+          });
+        }}
+      />
     </div>
   );
 }

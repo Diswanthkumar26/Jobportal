@@ -1,4 +1,3 @@
-
 package com.jobportal.server.config;
 
 import com.jobportal.server.security.JwtAuthFilter;
@@ -14,6 +13,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+
+import java.util.List;
 
 @Configuration
 @EnableMethodSecurity
@@ -25,44 +27,45 @@ public class SecurityConfig {
         this.jwtAuthFilter = jwtAuthFilter;
     }
 
-   @Bean
-public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-    http
-        .csrf(csrf -> csrf.disable())
-        .cors(Customizer.withDefaults())
-        .sessionManagement(sm ->
-            sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        )
+        http
+            .csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.configurationSource(request -> {
+                CorsConfiguration config = new CorsConfiguration();
+                config.setAllowedOrigins(List.of("http://localhost:5173"));
+                config.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
+                config.setAllowedHeaders(List.of("*"));
+                config.setExposedHeaders(List.of("Authorization"));
+                config.setAllowCredentials(true);
+                return config;
+            }))
+            .sessionManagement(sm ->
+                sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/error").permitAll()
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/auth/**", "/uploads/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/jobs", "/api/jobs/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/jobs/**").permitAll()
+                .requestMatchers(HttpMethod.PUT, "/api/jobs/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/jobs/**").authenticated()
+                .requestMatchers("/api/employer/**").authenticated()
+                .requestMatchers("/api/profile/job-seeker/**").authenticated()
+                .requestMatchers("/api/profile/employer/**").authenticated()
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                .requestMatchers("/api/users/**").authenticated()
+                .requestMatchers("/api/applications/**").authenticated()
+                .requestMatchers("/api/saved-jobs/**").authenticated()
+                .anyRequest().authenticated()
+            )
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
-.authorizeHttpRequests(auth -> auth
-    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-    .requestMatchers("/error").permitAll() 
-    .requestMatchers("/api/auth/**").permitAll()
-
-    .requestMatchers(HttpMethod.GET, "/api/jobs", "/api/jobs/**").permitAll()
-
-    .requestMatchers(HttpMethod.POST, "/api/jobs/**").permitAll()
-    .requestMatchers(HttpMethod.PUT, "/api/jobs/**").authenticated()
-    .requestMatchers(HttpMethod.DELETE, "/api/jobs/**").authenticated()
-    .requestMatchers("/api/employer/**").authenticated()
-    .requestMatchers("/api/profile/job-seeker/**").authenticated()
-    .requestMatchers("/api/employer/jobs/*/applicants").hasRole("EMPLOYER")
-    .requestMatchers("/api/profile/employer/**").authenticated()
-    .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-    .requestMatchers("/api/users/**").authenticated()
-    .requestMatchers("/api/applications/**").authenticated()
-    .requestMatchers("/api/saved-jobs/**").authenticated()
-    .anyRequest().authenticated()
-)
-
-
-        .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-
-    return http.build();
-}
-
-
+        return http.build();
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {

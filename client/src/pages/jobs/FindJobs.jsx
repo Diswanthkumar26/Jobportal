@@ -112,7 +112,7 @@ export default function FindJobs({ profile }) {
       <Navbar profile={profile} />
 
       <main className="max-w-6xl mx-auto px-4 py-8 md:py-10 space-y-6">
-        {/* filters (omitted for brevity, unchanged) */}
+        {/* filters UI stays as you already have */}
 
         <section className="bg-white rounded-2xl shadow-sm border border-slate-200">
           <div className="divide-y divide-slate-100">

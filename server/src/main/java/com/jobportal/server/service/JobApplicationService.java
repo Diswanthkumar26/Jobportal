@@ -36,6 +36,10 @@ public class JobApplicationService {
                 .findByUser_Email(email)
                 .orElseThrow(() -> new RuntimeException("Jobseeker profile not found"));
 
+        if (seeker.getResumeUrl() == null || seeker.getResumeUrl().isBlank()) {
+            throw new IllegalStateException("Please upload a resume before applying");
+        }
+
         JobPost job = jobRepository.findById(jobId)
                 .orElseThrow(() -> new RuntimeException("Job not found"));
 
@@ -46,6 +50,9 @@ public class JobApplicationService {
         JobApplication app = new JobApplication();
         app.setJob(job);
         app.setJobSeeker(seeker);
+        app.setResumeUrl(seeker.getResumeUrl());
+        app.setResumeFileName(seeker.getResumeFileName());
+        // status default "APPLIED"
         return applicationRepository.save(app);
     }
 

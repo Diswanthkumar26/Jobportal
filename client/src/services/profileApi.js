@@ -1,22 +1,15 @@
-// src/services/profileApi.js
+// client/src/services/profileApi.js
 import api from "./api";
 
-// GET current logged-in jobseeker profile
-export const getJobSeekerProfile = () => {
-  return api.get("/profile/job-seeker/me");
-};
+export const getJobSeekerProfile = () =>
+  api.get("/profile/job-seeker/me");
 
-// UPDATE jobseeker profile
-export const updateJobSeekerProfile = (data) => {
-  return api.put("/profile/job-seeker", data);
-};
+export const updateJobSeekerProfile = (data) =>
+  api.put("/profile/job-seeker", data);
 
-// UPDATE resume only (JSON)
-export const updateJobSeekerResume = (data) => {
-  return api.put("/profile/job-seeker/resume", data);
-};
+export const updateJobSeekerResume = (data) =>
+  api.put("/profile/job-seeker/resume", data);
 
-// UPLOAD resume file (multipart) -> /api/jobseeker/resume
 export const uploadResumeFile = (file) => {
   const formData = new FormData();
   formData.append("file", file);
@@ -24,3 +17,6 @@ export const uploadResumeFile = (file) => {
     headers: { "Content-Type": "multipart/form-data" },
   });
 };
+
+export const deleteJobSeekerResume = () =>
+  api.delete("/profile/job-seeker/resume");

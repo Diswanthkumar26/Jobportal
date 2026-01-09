@@ -3,8 +3,12 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import api from "../../services/api";
-import { getApplicationStatus, applyToJob } from "../../services/applicationsApi";
-
+import {
+  getApplicationStatus,
+  applyToJob,
+} from "../../services/applicationsApi";
+import { updateJobSeekerResume } from "../../services/profileApi";
+import UploadResumeModal from "../../components/dashboard/modals/UploadResumeModal";
 
 export default function JobDetails() {
   const navigate = useNavigate();
@@ -15,55 +19,75 @@ export default function JobDetails() {
   const [submitting, setSubmitting] = useState(false);
   const [applied, setApplied] = useState(false);
 
+  const [showResumeModal, setShowResumeModal] = useState(false);
+  const [pendingJobId, setPendingJobId] = useState(null);
+
   useEffect(() => {
-  const load = async () => {
-    try {
-      setLoading(true);
+    if (!id) return;
 
-      // 1) job details
-      const jobRes = await api.get(`/jobs/${id}`); // /api/jobs/{id}
-      setJob(jobRes.data);
-
-      // 2) already applied? backend returns boolean
+    const load = async () => {
       try {
-        const statusRes = await getApplicationStatus(Number(id));
-        const appliedFlag = Boolean(statusRes.data);   // <-- use a local name
-        setApplied(appliedFlag);
-      } catch (e) {
-        // if 404 or any error, treat as not applied
-        setApplied(false);
+        setLoading(true);
+
+        const jobRes = await api.get(`/jobs/${id}`);
+        setJob(jobRes.data);
+
+        try {
+          const statusRes = await getApplicationStatus(Number(id));
+          setApplied(Boolean(statusRes.data));
+        } catch {
+          setApplied(false);
+        }
+      } catch (err) {
+        console.error("Failed to load job or applications", err);
+        toast.error("Failed to load job details");
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("Failed to load job or applications", err);
-      toast.error("Failed to load job details");
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  load();
-}, [id]);
-
+    load();
+  }, [id]);
 
   const handleApply = async () => {
-    if (applied) return;
-    try {
-      setSubmitting(true);
-      await applyToJob(Number(id));
-      toast.success("Application submitted successfully.");
-      setApplied(true);
-    } catch (err) {
-      console.error("Failed to apply", err);
-      if (err.response && err.response.status === 400) {
-        toast.error(err.response.data || "You have already applied to this job");
-        setApplied(true);
-      } else {
-        toast.error("Failed to submit application");
-      }
-    } finally {
-      setSubmitting(false);
+  if (applied || !id) return;
+  try {
+    setSubmitting(true);
+    await applyToJob(Number(id));
+    toast.success("Application submitted successfully.");
+    setApplied(true);
+  } catch (err) {
+    console.error("Failed to apply", err);
+
+    // normalise message
+    let msg =
+      err.response?.data?.message ??
+      err.response?.data ??
+      err.message ??
+      "";
+
+    if (typeof msg !== "string") {
+      msg = JSON.stringify(msg);
     }
-  };
+
+    const lower = msg.toLowerCase();
+
+    // if backend says "Please upload a resume before applying"
+    if (lower.includes("upload a resume")) {
+      setPendingJobId(Number(id));
+      setShowResumeModal(true);
+    } else if (err.response?.status === 400) {
+      toast.error(msg || "You have already applied to this job");
+      setApplied(true);
+    } else {
+      // for 500 or others
+      toast.error(msg || "Failed to submit application");
+    }
+  } finally {
+    setSubmitting(false);
+  }
+};
+
 
   if (loading) {
     return (
@@ -146,6 +170,35 @@ export default function JobDetails() {
           </button>
         </section>
       </main>
+
+      <UploadResumeModal
+        open={showResumeModal}
+        onClose={() => {
+          setShowResumeModal(false);
+          setPendingJobId(null);
+        }}
+        onSave={async (url, fileName) => {
+          try {
+            await updateJobSeekerResume({
+              resumeUrl: url,
+              resumeFileName: fileName,
+            });
+            toast.success("Resume uploaded");
+
+            if (pendingJobId) {
+              await applyToJob(pendingJobId);
+              toast.success("Application submitted successfully.");
+              setApplied(true);
+            }
+          } catch (e) {
+            console.error(e);
+            toast.error("Could not complete application");
+          } finally {
+            setShowResumeModal(false);
+            setPendingJobId(null);
+          }
+        }}
+      />
     </div>
   );
 }

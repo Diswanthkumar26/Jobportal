@@ -1,4 +1,4 @@
-
+// client/src/services/applicationsApi.js
 import api from "./api";
 
 export const getApplicationStatus = (jobId) =>
@@ -10,6 +10,10 @@ export const applyToJob = (jobId) =>
 export const getMyApplications = () =>
   api.get("/applications/me");
 
-
 export const getApplicantsForJob = (jobId) =>
-  api.get(`/employer/jobs/${jobId}/applicants`);
+  api.get(`/employer/jobs/${jobId}/applications`);
+
+export const updateApplicationStatus = (applicationId, status) =>
+  api.patch(`/employer/applications/${applicationId}/status`, null, {
+    params: { status },
+  });

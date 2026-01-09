@@ -1,12 +1,17 @@
 package com.jobportal.server.controller;
 
 import java.util.List;
+import java.util.Map;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import com.jobportal.server.entity.JobApplication;
 import com.jobportal.server.service.JobApplicationService;
+
+import jakarta.persistence.EntityNotFoundException;
 
 @RestController
 @RequestMapping("/api/applications")
@@ -19,10 +24,26 @@ public class JobApplicationController {
     }
 
     @PostMapping("/{jobId}")
-    public JobApplication apply(@PathVariable Long jobId,
-                                Authentication authentication) {
+    public ResponseEntity<?> apply(@PathVariable Long jobId,
+                                   Authentication authentication) {
+
+        if (authentication == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "User not authenticated"));
+        }
+
         String email = authentication.getName();
-        return applicationService.apply(jobId, email);
+
+        try {
+            JobApplication app = applicationService.apply(jobId, email);
+            return ResponseEntity.ok(app);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", e.getMessage()));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", e.getMessage()));
+        }
     }
 
     @GetMapping("/{jobId}/applied")

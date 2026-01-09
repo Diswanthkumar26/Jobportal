@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.jobportal.server.entity.profile.JobPost;
+import com.jobportal.server.entity.JobSeekerProfile;
 import jakarta.persistence.*;
 
 @Entity
@@ -30,6 +31,12 @@ public class JobApplication {
     @Column(nullable = false)
     private LocalDateTime appliedAt = LocalDateTime.now();
 
+    private String resumeUrl;
+    private String resumeFileName;
+
+    @Column(nullable = false)
+    private String status = "APPLIED";  // APPLIED, SHORTLISTED, REJECTED
+
     public JobApplication() {}
 
     public Long getId() { return id; }
@@ -43,4 +50,13 @@ public class JobApplication {
 
     public LocalDateTime getAppliedAt() { return appliedAt; }
     public void setAppliedAt(LocalDateTime appliedAt) { this.appliedAt = appliedAt; }
+
+    public String getResumeUrl() { return resumeUrl; }
+    public void setResumeUrl(String resumeUrl) { this.resumeUrl = resumeUrl; }
+
+    public String getResumeFileName() { return resumeFileName; }
+    public void setResumeFileName(String resumeFileName) { this.resumeFileName = resumeFileName; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }

@@ -9,11 +9,15 @@ public class ApplicantDto {
     private String email;
     private String phone;
 
-    private String headline;          // current role
-    private String location;          // current city
+    private String headline;
+    private String location;
     private String totalExperience;
     private String keySkills;
     private String resumeUrl;
+    private String resumeFileName;
+
+    private String status;
+    private String appliedAt;
 
     public ApplicantDto(Long applicationId,
                         Long userId,
@@ -24,7 +28,10 @@ public class ApplicantDto {
                         String location,
                         String totalExperience,
                         String keySkills,
-                        String resumeUrl) {
+                        String resumeUrl,
+                        String resumeFileName,
+                        String status,
+                        String appliedAt) {
         this.applicationId = applicationId;
         this.userId = userId;
         this.name = name;
@@ -35,6 +42,9 @@ public class ApplicantDto {
         this.totalExperience = totalExperience;
         this.keySkills = keySkills;
         this.resumeUrl = resumeUrl;
+        this.resumeFileName = resumeFileName;
+        this.status = status;
+        this.appliedAt = appliedAt;
     }
 
     public Long getApplicationId() { return applicationId; }
@@ -47,4 +57,7 @@ public class ApplicantDto {
     public String getTotalExperience() { return totalExperience; }
     public String getKeySkills() { return keySkills; }
     public String getResumeUrl() { return resumeUrl; }
+    public String getResumeFileName() { return resumeFileName; }
+    public String getStatus() { return status; }
+    public String getAppliedAt() { return appliedAt; }
 }
