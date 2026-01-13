@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
+import { getJobSeekerProfile } from "../../services/profileApi";
 import JobCard from "../../components/JobCard";
 import Navbar from "../../components/common/Navbar";
 import { MOCK_JOBS } from "../../data/mockJobs";
 
-export default function JobseekerHome({ profile }) {
+export default function JobseekerHome() {
   const navigate = useNavigate();
 
   const [jobs, setJobs] = useState([]);
@@ -20,10 +21,18 @@ export default function JobseekerHome({ profile }) {
   const [expFilter, setExpFilter] = useState("any");
   const [sortBy, setSortBy] = useState("relevant");
 
-  // --- per-user saved key (same as FindJobs / SavedJobs) ---
+  // profile + fields for completeness
+  const [profile, setProfile] = useState(null);
+  const [about, setAbout] = useState("");
+  const [skills, setSkills] = useState([]);
+  const [experience, setExperience] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [certifications, setCertifications] = useState([]);
+  const [resumeUrl, setResumeUrl] = useState(null);
+
+  // per-user saved key
   const userEmail = (localStorage.getItem("email") || "guest").toLowerCase();
   const SAVED_KEY = `savedJobs:${userEmail}`;
-  console.log("Home SAVED_KEY =", SAVED_KEY);
 
   const [savedJobs, setSavedJobs] = useState(() => {
     const stored = localStorage.getItem(SAVED_KEY);
@@ -41,6 +50,7 @@ export default function JobseekerHome({ profile }) {
     );
   };
 
+  // load jobs
   useEffect(() => {
     api
       .get("/jobs")
@@ -51,6 +61,103 @@ export default function JobseekerHome({ profile }) {
       });
   }, []);
 
+  // load profile for navbar + completeness (same logic as dashboard)
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await getJobSeekerProfile();
+        const p = res.data;
+        const u = p.user || {};
+
+        const mappedProfile = {
+          name: `${p.firstName ?? ""} ${p.lastName ?? ""}`.trim(),
+          headline: p.currentRole || "",
+          location: p.currentCity || "",
+          photoUrl: u.photoUrl || "",
+        };
+        setProfile(mappedProfile);
+
+        setAbout(p.about || u.about || "");
+
+        if (p.skills) {
+          setSkills(
+            p.skills
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean)
+          );
+        } else if (Array.isArray(u.skills)) {
+          setSkills(u.skills);
+        } else {
+          setSkills([]);
+        }
+
+        if (p.experiencesJson) {
+          setExperience(JSON.parse(p.experiencesJson));
+        } else if (Array.isArray(u.experiences)) {
+          setExperience(u.experiences);
+        } else {
+          setExperience([]);
+        }
+
+        if (p.projectsJson) {
+          setProjects(JSON.parse(p.projectsJson));
+        } else if (Array.isArray(u.projects)) {
+          setProjects(u.projects);
+        } else {
+          setProjects([]);
+        }
+
+        if (p.certificationsJson) {
+          setCertifications(JSON.parse(p.certificationsJson));
+        } else if (Array.isArray(u.certifications)) {
+          setCertifications(u.certifications);
+        } else {
+          setCertifications([]);
+        }
+
+        const ru = p.resumeUrl || p.resume_url || null;
+        setResumeUrl(ru);
+      } catch (e) {
+        console.error("Failed to load profile for home completeness", e);
+      }
+    })();
+  }, []);
+
+  const hasBasic =
+    (profile?.name && profile.name.trim().length > 0) ||
+    (profile?.headline && profile.headline.trim().length > 0) ||
+    (profile?.location && profile.location.trim().length > 0) ||
+    (profile?.photoUrl && profile.photoUrl.trim().length > 0);
+
+  const completeness = useMemo(() => {
+    let filledParts = 0;
+    const totalParts = 7; // basic, about, exp, projects, skills, resume, certs
+
+    if (hasBasic) filledParts += 1;
+    if (about) filledParts += 1;
+    if (experience.length) filledParts += 1;
+    if (projects.length) filledParts += 1;
+    if (skills.length) filledParts += 1;
+    if (resumeUrl) filledParts += 1;
+    if (certifications.length) filledParts += 1;
+
+    return Math.round((filledParts / totalParts) * 100);
+  }, [
+    hasBasic,
+    about,
+    experience.length,
+    projects.length,
+    skills.length,
+    resumeUrl,
+    certifications.length,
+  ]);
+
+  const profileWithCompleteness = profile
+    ? { ...profile, profileCompletedPercentage: completeness, skills }
+    : null;
+
+  // locations, filters
   const allLocations = useMemo(
     () =>
       Array.from(new Set(jobs.map((job) => job.location))).filter(Boolean),
@@ -91,8 +198,7 @@ export default function JobseekerHome({ profile }) {
       jobType === "all" || type === jobType.trim().toLowerCase();
 
     const matchesTypeFilter =
-      typeFilter === "any" ||
-      type === typeFilter.trim().toLowerCase();
+      typeFilter === "any" || type === typeFilter.trim().toLowerCase();
 
     const matchesExpFilter =
       expFilter === "any" || exp === expFilter;
@@ -117,20 +223,21 @@ export default function JobseekerHome({ profile }) {
   }, [filteredJobs, sortBy]);
 
   const recommendedJobs = useMemo(() => {
-    if (!profile) return [];
-    const skills = (profile.skills || []).map((s) => s.toLowerCase());
-    if (skills.length === 0 && !profile.location) return [];
+    if (!profileWithCompleteness) return [];
+    const skillsLower = (skills || []).map((s) => s.toLowerCase());
+    if (skillsLower.length === 0 && !profileWithCompleteness.location) return [];
     return filteredJobs
       .map((job) => {
         const text =
           (job.title || "").toLowerCase() +
           " " +
           (job.description || "").toLowerCase();
-        const skillMatches = skills.filter((s) => text.includes(s)).length;
+        const skillMatches = skillsLower.filter((s) => text.includes(s)).length;
         const sameLoc =
-          profile.location &&
+          profileWithCompleteness.location &&
           job.location &&
-          job.location.toLowerCase() === profile.location.toLowerCase();
+          job.location.toLowerCase() ===
+            profileWithCompleteness.location.toLowerCase();
         const score = skillMatches * 2 + (sameLoc ? 3 : 0);
         return { job, score };
       })
@@ -138,7 +245,7 @@ export default function JobseekerHome({ profile }) {
       .sort((a, b) => b.score - a.score)
       .slice(0, 5)
       .map((x) => x.job);
-  }, [filteredJobs, profile]);
+  }, [filteredJobs, profileWithCompleteness, skills]);
 
   const handleLocationSelect = (loc) => {
     if (loc === "All locations") {
@@ -150,11 +257,11 @@ export default function JobseekerHome({ profile }) {
     }
     setShowLocationDropdown(false);
   };
+console.log("HOME completeness", completeness, profileWithCompleteness);
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Navbar profile={profile} />
-
+      <Navbar profile={profileWithCompleteness} />
       {/* Hero + search */}
       <section className="bg-indigo-600 text-white">
         <div className="max-w-6xl mx-auto px-4 py-12 md:py-16">

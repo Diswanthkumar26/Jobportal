@@ -20,11 +20,6 @@ public class UpdateJobSeekerRequest {
             @Size(min = 1, max = 50, message = "Skill must be between 1 and 50 characters")
             String> skills;
 
-    // @Size(max = 2048, message = "Resume URL is too long")
-    // private String resumeUrl;
-
-    // private String resumeFileName;
-
     @Size(max = 100, message = "Headline must be at most 100 characters")
     private String headline;
 
@@ -33,6 +28,12 @@ public class UpdateJobSeekerRequest {
 
     @Size(max = 2048, message = "Photo URL is too long")
     private String photoUrl;
+
+    @Size(max = 100, message = "Current salary must be at most 100 characters")
+    private String currentSalary;
+
+    @Size(max = 100, message = "Expected salary must be at most 100 characters")
+    private String expectedSalary;
 
     @Valid
     private List<@Valid Experience> experiences;

@@ -1,3 +1,4 @@
+// src/main/java/com/jobportal/server/config/WebConfig.java
 package com.jobportal.server.config;
 
 import org.springframework.context.annotation.Configuration;

@@ -16,6 +16,7 @@ export default function JobSeekerDetails() {
     currentRole: "",
     highestEducation: "",
     keySkills: "",
+    currentSalary: "",
     expectedSalary: "",
     workType: "full-time",
     about: "",
@@ -240,6 +241,17 @@ export default function JobSeekerDetails() {
           </div>
 
           {/* Work type */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+      <label className="text-sm text-slate-900">Current salary</label>
+      <input
+        name="currentSalary"
+        value={form.currentSalary}
+        onChange={handleChange}
+        placeholder="e.g. 4 LPA"
+        className="mt-1 w-full h-10 px-3 rounded-lg bg-slate-200 border border-slate-700 text-sm"
+      />
+    </div>
           <div>
             <label className="text-sm text-slate-900">Work type</label>
             <div className="mt-2 flex flex-wrap gap-3 text-xs">
@@ -261,6 +273,8 @@ export default function JobSeekerDetails() {
               )}
             </div>
           </div>
+
+       </div>   
 
           {/* About & links */}
           {/* <div>

@@ -1,11 +1,10 @@
-// src/pages/dashboard/JobSeekerDashboard.jsx
 import React, { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   getJobSeekerProfile,
   updateJobSeekerProfile,
   updateJobSeekerResume,
 } from "../../services/profileApi";
+import api from "../../services/api";
 
 import ProfileHeader from "../../components/dashboard/jobseeker/ProfileHeader";
 import ResumeUpload from "../../components/dashboard/jobseeker/ResumeUpload";
@@ -15,6 +14,7 @@ import ExperienceSection from "../../components/dashboard/jobseeker/ExperienceSe
 import ProjectsSection from "../../components/dashboard/jobseeker/ProjectsSection";
 import EducationSection from "../../components/dashboard/jobseeker/EducationSection";
 import CertificationsSection from "../../components/dashboard/jobseeker/CertificationsSection";
+import SidebarTips from "../../components/dashboard/jobseeker/SidebarTips";
 
 import EditProfileModal from "../../components/dashboard/modals/EditProfileModal";
 import EditAboutModal from "../../components/dashboard/modals/EditAboutModal";
@@ -26,10 +26,9 @@ import EditCertificationModal from "../../components/dashboard/modals/EditCertif
 import UploadResumeModal from "../../components/dashboard/modals/UploadResumeModal";
 
 import Navbar from "../../components/common/Navbar";
+import { normalizePhotoUrl } from "../../utils/photoUrl";
 
 export default function JobSeekerDashboard() {
-  const navigate = useNavigate();
-
   const [loading, setLoading] = useState(true);
 
   const [profile, setProfile] = useState({
@@ -39,6 +38,7 @@ export default function JobSeekerDashboard() {
     photoUrl: "",
     company: "",
     experienceText: "",
+    currentCtc: "",
     ctc: "",
     phone: "",
     email: "",
@@ -52,7 +52,6 @@ export default function JobSeekerDashboard() {
   const [education, setEducation] = useState([]);
   const [certifications, setCertifications] = useState([]);
 
-  // resume
   const [resumeStatus, setResumeStatus] = useState("No resume uploaded");
   const [resumeUrl, setResumeUrl] = useState(null);
   const [openResumeModal, setOpenResumeModal] = useState(false);
@@ -74,7 +73,6 @@ export default function JobSeekerDashboard() {
   const closeModal = (setter) => setter(false);
 
   const userId = localStorage.getItem("userId");
-  console.log("userId in dashboard", userId);
 
   useEffect(() => {
     if (!userId) {
@@ -90,22 +88,23 @@ export default function JobSeekerDashboard() {
       const res = await getJobSeekerProfile();
       const p = res.data;
       const u = p.user || {};
-      console.log("jobseeker profile from API", p);
 
       const mappedProfile = {
         name: `${p.firstName ?? ""} ${p.lastName ?? ""}`.trim(),
         headline: p.currentRole || "",
         location: p.currentCity || "",
-        photoUrl: u.photoUrl || "",
+        photoUrl: normalizePhotoUrl(u.photoUrl),
         company: "Your company",
         experienceText: p.totalExperience || "",
+        currentCtc: p.currentSalary || "",
         ctc: p.expectedSalary || "",
         phone: p.phone || u.phone || "",
         email: u.email || "",
         noticePeriod: p.noticePeriod || "",
       };
-      setProfile(mappedProfile);
+     console.log("PROFILE after load", mappedProfile);
 
+      setProfile(mappedProfile);
       setAbout(p.about || u.about || "");
 
       if (p.skills) {
@@ -153,7 +152,6 @@ export default function JobSeekerDashboard() {
         setCertifications([]);
       }
 
-      // ------- resume fields -------
       const ru = p.resumeUrl || p.resume_url || null;
       setResumeUrl(ru);
 
@@ -164,7 +162,6 @@ export default function JobSeekerDashboard() {
       } else {
         setResumeStatus("No resume uploaded");
       }
-      // ------------------------------
     } catch (err) {
       console.error(err);
     } finally {
@@ -172,9 +169,10 @@ export default function JobSeekerDashboard() {
     }
   };
 
+  console.log("DASHBOARD profile state", profile);
+
   const sendUpdate = async (patch) => {
     if (!userId) return;
-    console.log("PATCH to /api/profile/job-seeker:", JSON.stringify(patch));
     try {
       await updateJobSeekerProfile(patch);
       await loadProfile();
@@ -191,7 +189,6 @@ export default function JobSeekerDashboard() {
 
   const sendResumeUpdate = async (patch) => {
     try {
-      console.log("PATCH to /profile/job-seeker/resume:", patch);
       await updateJobSeekerResume(patch);
       await loadProfile();
     } catch (err) {
@@ -205,73 +202,50 @@ export default function JobSeekerDashboard() {
     }
   };
 
-  const handleRemoveExperience = async (index) => {
-    const updated = experience.filter((_, i) => i !== index);
-    setExperience(updated);
-    await sendUpdate({ experiences: updated });
-  };
+   const hasBasic =
+    (profile.name && profile.name.trim().length > 0) &&
+    (profile.email && profile.email.trim().length > 0) &&
+    (profile.location && profile.location.trim().length > 0);
 
-  const handleRemoveProject = async (index) => {
-    const updated = projects.filter((_, i) => i !== index);
-    setProjects(updated);
-    await sendUpdate({ projects: updated });
-  };
-
-  const handleRemoveEducation = async (index) => {
-    const updated = education.filter((_, i) => i !== index);
-    setEducation(updated);
-    await sendUpdate({ education: updated });
-  };
-
-  const handleRemoveCertification = async (index) => {
-    const updated = certifications.filter((_, i) => i !== index);
-    setCertifications(updated);
-    await sendUpdate({ certifications: updated });
-  };
-
-  const handleRemoveSkill = async (index) => {
-    const updated = skills.filter((_, i) => i !== index);
-    setSkills(updated);
-    await sendUpdate({ skills: updated });
-  };
+  const hasPhoto = !!(profile.photoUrl && profile.photoUrl.trim().length > 0);
+const hasAbout = !!(about && about.trim().length >= 50); // e.g. min length
+const hasExperience = experience.length > 0;
+const hasProjects = projects.length > 0;
+const hasSkills = skills.length >= 5; // e.g. at least 5 skills
+const hasResume = !!resumeUrl;
+const hasEducation = education.length > 0;
+const hasCertifications = certifications.length > 0;
 
   const completeness = useMemo(() => {
-  let filledParts = 0;
-  const totalParts = 7; // basic header, about, experience, projects, skills, resume, certifications
+  let score = 0;
 
-  const hasBasic =
-    (profile.name && profile.name.trim().length > 0) ||
-    (profile.headline && profile.headline.trim().length > 0) ||
-    (profile.location && profile.location.trim().length > 0) ||
-    (profile.photoUrl && profile.photoUrl.trim().length > 0);
+  if (hasBasic) score += 8;           // Basic info & contact
+  if (hasPhoto) score += 7;           // Profile photo
+  if (hasAbout) score += 10;          // About / summary
+  if (hasResume) score += 25;         // Resume / CV
+  if (hasExperience) score += 20;     // Work experience
+  if (hasEducation) score += 10;      // Education
+  if (hasSkills) score += 10;         // Skills
+  if (hasCertifications) score += 5;  // Certifications
+  if (hasProjects) score += 5;        // Projects
 
-  if (hasBasic) filledParts += 1;
-  if (about) filledParts += 1;
-  if (experience.length) filledParts += 1;
-  if (projects.length) filledParts += 1;
-  if (skills.length) filledParts += 1;
-  if (resumeUrl) filledParts += 1;
-  if (certifications.length) filledParts += 1;
-
-  return Math.round((filledParts / totalParts) * 100);
+  return Math.min(100, score);
 }, [
-  profile.name,
-  profile.headline,
-  profile.location,
-  profile.photoUrl,
-  about,
-  experience.length,
-  projects.length,
-  skills.length,
-  resumeUrl,
-  certifications.length,
+  hasBasic,
+  hasPhoto,
+  hasAbout,
+  hasResume,
+  hasExperience,
+  hasEducation,
+  hasSkills,
+  hasCertifications,
+  hasProjects,
 ]);
 
-// inject into profile so Navbar can use it
-const profileWithCompleteness = {
-  ...profile,
-  profileCompletedPercentage: completeness,
-};
+  const profileWithCompleteness = {
+    ...profile,
+    profileCompletedPercentage: completeness,
+  };
 
   if (!userId) {
     return (
@@ -286,6 +260,8 @@ const profileWithCompleteness = {
     return <div className="p-6 text-center">Loading...</div>;
   }
 
+  console.log("DASHBOARD completeness", completeness, profileWithCompleteness);
+
   return (
     <div className="min-h-screen bg-slate-100 pb-20">
       <Navbar profile={profileWithCompleteness} />
@@ -295,7 +271,9 @@ const profileWithCompleteness = {
           <ProfileHeader
             profile={profile}
             onEdit={() => openModal(setOpenProfileModal)}
+            
           />
+
 
           <ResumeUpload
             resumeStatus={resumeStatus}
@@ -319,7 +297,11 @@ const profileWithCompleteness = {
               setEditingExpIndex(index);
               openModal(setOpenExperienceModal);
             }}
-            onRemoveItem={handleRemoveExperience}
+            onRemoveItem={async (index) => {
+              const updated = experience.filter((_, i) => i !== index);
+              setExperience(updated);
+              await sendUpdate({ experiences: updated });
+            }}
           />
 
           <ProjectsSection
@@ -332,14 +314,22 @@ const profileWithCompleteness = {
               setEditingProjectIndex(index);
               openModal(setOpenProjectModal);
             }}
-            onRemoveItem={handleRemoveProject}
+            onRemoveItem={async (index) => {
+              const updated = projects.filter((_, i) => i !== index);
+              setProjects(updated);
+              await sendUpdate({ projects: updated });
+            }}
           />
 
           <SkillsSection
             skills={skills}
             onAdd={() => openModal(setOpenSkillsModal)}
             onEdit={() => openModal(setOpenSkillsModal)}
-            onRemoveItem={handleRemoveSkill}
+            onRemoveItem={async (index) => {
+              const updated = skills.filter((_, i) => i !== index);
+              setSkills(updated);
+              await sendUpdate({ skills: updated });
+            }}
           />
 
           <EducationSection
@@ -352,7 +342,11 @@ const profileWithCompleteness = {
               setEditingEduIndex(idx);
               setOpenEducationModal(true);
             }}
-            onRemoveItem={handleRemoveEducation}
+            onRemoveItem={async (index) => {
+              const updated = education.filter((_, i) => i !== index);
+              setEducation(updated);
+              await sendUpdate({ education: updated });
+            }}
           />
 
           <CertificationsSection
@@ -365,7 +359,11 @@ const profileWithCompleteness = {
               setEditingCertIndex(index);
               openModal(setOpenCertModal);
             }}
-            onRemoveItem={handleRemoveCertification}
+            onRemoveItem={async (index) => {
+              const updated = certifications.filter((_, i) => i !== index);
+              setCertifications(updated);
+              await sendUpdate({ certifications: updated });
+            }}
           />
         </div>
 
@@ -384,32 +382,66 @@ const profileWithCompleteness = {
               Profile {completeness}% complete.
             </p>
           </section>
+
+          <SidebarTips
+  completeness={completeness}
+  hasBasic={hasBasic}
+  hasAbout={hasAbout}
+  hasExperience={hasExperience}
+  hasProjects={hasProjects}
+  hasSkills={hasSkills}
+  hasResume={hasResume}
+  hasCertifications={hasCertifications}
+/>
         </aside>
       </main>
 
       {/* MODALS */}
+
       <EditProfileModal
         open={openProfileModal}
         initial={profile}
         onClose={() => closeModal(setOpenProfileModal)}
-        onChangePhoto={(file) => {
-          console.log("new photo file", file);
+        onChangePhoto={async (file) => {
+          if (file.size > 5 * 1024 * 1024) {
+            alert("Please upload an image smaller than 5MB");
+            return;
+          }
+
+          try {
+            const formData = new FormData();
+            formData.append("photo", file);
+
+            const res = await api.post(
+              "/profile/job-seeker/me/photo",
+              formData,
+              { headers: { "Content-Type": "multipart/form-data" } }
+            );
+
+           const persistentUrl = normalizePhotoUrl(res.data.photoUrl);
+setProfile((prev) => ({ ...prev, photoUrl: persistentUrl }));
+
+          } catch (e) {
+            console.error("Photo upload failed", e);
+            alert("Photo upload failed");
+          }
         }}
-        onDeletePhoto={() => {
-          setProfile((prev) => ({ ...prev, photoUrl: null }));
-          sendUpdate({ photoUrl: null });
-        }}
+        onDeletePhoto={async () => {
+  setProfile((prev) => ({ ...prev, photoUrl: "" }));
+  await sendUpdate({ photoUrl: "" });
+}}
+
         onSave={async (data) => {
-          setProfile((prev) => ({ ...prev, ...data }));
+    setProfile((prev) => ({ ...prev, ...data, photoUrl: prev.photoUrl }));
+    const patch = {
+      headline: data.headline,
+      location: data.location,
+      currentSalary: data.currentCtc, // backend field
+      expectedSalary: data.ctc,
+    };
+  await sendUpdate(patch);
+}}
 
-          const patch = {
-            headline: data.headline,
-            location: data.location,
-            photoUrl: data.photoUrl,
-          };
-
-          await sendUpdate(patch);
-        }}
       />
 
       <EditAboutModal
@@ -520,7 +552,6 @@ const profileWithCompleteness = {
         }
         onClose={() => setOpenResumeModal(false)}
         onSave={async (fileUrl, fileName) => {
-          // deleted case
           if (fileUrl === null && fileName === null) {
             setResumeUrl(null);
             setResumeStatus("No resume uploaded");
@@ -531,7 +562,6 @@ const profileWithCompleteness = {
             return;
           }
 
-          // uploaded case
           setResumeUrl(fileUrl);
           setResumeStatus(fileName || "Uploaded");
           await sendResumeUpdate({

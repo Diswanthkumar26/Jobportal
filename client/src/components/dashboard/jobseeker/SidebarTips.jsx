@@ -1,24 +1,45 @@
-export default function SidebarTips() {
-  return (
-    <aside className="hidden lg:block w-64 space-y-4">
-      <section className="bg-white rounded-lg border border-slate-200 p-3">
-        <h3 className="text-xs font-semibold text-slate-900 mb-2">Profile completeness</h3>
-        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-          <div className="h-full w-2/3 bg-indigo-500" />
-        </div>
-        <p className="text-[11px] text-slate-500 mt-2">
-          Complete your about, experience and projects to improve visibility.
-        </p>
-      </section>
+// src/components/dashboard/jobseeker/SidebarTips.jsx
+import React from "react";
 
-      <section className="bg-white rounded-lg border border-slate-200 p-3">
-        <h3 className="text-xs font-semibold text-slate-900 mb-2">Tips for your profile</h3>
-        <ul className="space-y-1 text-[11px] text-slate-600">
-          <li>Add at least 5 skills relevant to your target roles.</li>
-          <li>Highlight impact in your experience descriptions.</li>
-          <li>Attach links to your best projects / GitHub.</li>
+export default function SidebarTips({
+  completeness,
+  hasBasic,
+  hasAbout,
+  hasExperience,
+  hasProjects,
+  hasSkills,
+  hasResume,
+  hasCertifications,
+}) {
+  const tips = [];
+
+  if (!hasBasic) tips.push("Fill your basic details (name, headline, location, photo).");
+  if (!hasAbout) tips.push("Write a short About summary (2–3 lines).");
+  if (!hasExperience) tips.push("Add at least one work experience or internship.");
+  if (!hasProjects) tips.push("Add a project that matches your target role.");
+  if (!hasSkills) tips.push("Add 5–8 relevant skills to your profile.");
+  if (!hasResume) tips.push("Upload your latest resume in PDF or DOC.");
+  if (!hasCertifications) tips.push("Add any important certifications you hold.");
+
+  return (
+    <section className="bg-white rounded-lg border border-slate-200 p-3">
+      <h3 className="text-xs font-semibold text-slate-900 mb-2">
+        Next steps ({completeness}%)
+      </h3>
+
+      {tips.length === 0 ? (
+        <p className="text-[11px] text-green-600">
+          Your profile looks strong. Keep applying to suitable jobs.
+        </p>
+      ) : (
+        <ul className="space-y-1">
+          {tips.slice(0, 4).map((tip, idx) => (
+            <li key={idx} className="text-[11px] text-slate-600">
+              • {tip}
+            </li>
+          ))}
         </ul>
-      </section>
-    </aside>
+      )}
+    </section>
   );
 }

@@ -12,13 +12,20 @@ export default function EditProfileModal({
   const [headline, setHeadline] = useState("");
   const [location, setLocation] = useState("");
   const [company, setCompany] = useState("");
+
   const [experienceText, setExperienceText] = useState("");
+  const [currentCtc, setCurrentCtc] = useState("");
   const [ctc, setCtc] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [noticePeriod, setNoticePeriod] = useState("");
-  const [photoUrl, setPhotoUrl] = useState(null);
 
+  // server URL
+  const [photoUrl, setPhotoUrl] = useState(null);
+  // local preview blob
+  const [previewUrl, setPreviewUrl] = useState(null);
+
+  // load initial values when opening
   useEffect(() => {
     if (!initial) return;
     setName(initial.name || "");
@@ -26,13 +33,16 @@ export default function EditProfileModal({
     setLocation(initial.location || "");
     setCompany(initial.company || "");
     setExperienceText(initial.experienceText || "");
+    setCurrentCtc(initial.currentCtc || "");
     setCtc(initial.ctc || "");
     setPhone(initial.phone || "");
     setEmail(initial.email || "");
     setNoticePeriod(initial.noticePeriod || "");
     setPhotoUrl(initial.photoUrl || null);
+    setPreviewUrl(null);
   }, [initial, open]);
 
+  // lock scroll when modal open
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "auto";
     return () => {
@@ -40,26 +50,35 @@ export default function EditProfileModal({
     };
   }, [open]);
 
+  // cleanup preview blob
   useEffect(() => {
     return () => {
-      if (photoUrl && photoUrl.startsWith("blob:")) {
-        URL.revokeObjectURL(photoUrl);
+      if (previewUrl && previewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(previewUrl);
       }
     };
-  }, [photoUrl]);
+  }, [previewUrl]);
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (onChangePhoto) onChangePhoto(file);
+
     const preview = URL.createObjectURL(file);
-    setPhotoUrl(preview);
+    setPreviewUrl(preview);
+
+    if (onChangePhoto) onChangePhoto(file);
   };
 
   const handleDeletePhoto = () => {
     setPhotoUrl(null);
+    setPreviewUrl(null);
     if (onDeletePhoto) onDeletePhoto();
   };
+
+  const displayUrl =
+    previewUrl ? previewUrl :
+    photoUrl ? photoUrl :
+    "/default-avatar.jpg";
 
   const handleSave = () => {
     onSave({
@@ -68,6 +87,7 @@ export default function EditProfileModal({
       location,
       company,
       experienceText,
+      currentCtc,
       ctc,
       phone,
       email,
@@ -102,15 +122,11 @@ export default function EditProfileModal({
 
         <div className="flex flex-col items-center mb-6">
           <div className="w-28 h-28 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center mb-3">
-            {photoUrl ? (
-              <img
-                src={photoUrl}
-                alt="Profile"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <span className="text-xs text-slate-500">No photo</span>
-            )}
+            <img
+              src={displayUrl}
+              alt="Profile"
+              className="w-full h-full object-cover"
+            />
           </div>
 
           <input
@@ -129,7 +145,7 @@ export default function EditProfileModal({
           >
             Replace photo
           </button>
-          {photoUrl && (
+          {(photoUrl || previewUrl) && (
             <button
               type="button"
               onClick={handleDeletePhoto}
@@ -171,12 +187,55 @@ export default function EditProfileModal({
             value={experienceText}
             onChange={(e) => setExperienceText(e.target.value)}
           />
-          <input
-            className="border border-slate-200 p-2 rounded text-sm"
-            placeholder="CTC (e.g. 2,50,000)"
-            value={ctc}
-            onChange={(e) => setCtc(e.target.value)}
-          />
+
+          {/* Current CTC */}
+          <div className="flex gap-2 items-center">
+            <input
+              className="flex-1 border border-slate-200 p-2 rounded text-sm"
+              placeholder="Current CTC in LPA (e.g. 2.5)"
+              value={currentCtc}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (/^[0-9]*\.?[0-9]*$/.test(val)) {
+                  setCurrentCtc(val);
+                }
+              }}
+            />
+            {currentCtc && (
+              <button
+                type="button"
+                onClick={() => setCurrentCtc("")}
+                className="text-[11px] text-slate-500 hover:text-red-500"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+
+          {/* Expected CTC */}
+          <div className="flex gap-2 items-center">
+            <input
+              className="flex-1 border border-slate-200 p-2 rounded text-sm"
+              placeholder="Expected CTC in LPA (e.g. 4)"
+              value={ctc}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (/^[0-9]*\.?[0-9]*$/.test(val)) {
+                  setCtc(val);
+                }
+              }}
+            />
+            {ctc && (
+              <button
+                type="button"
+                onClick={() => setCtc("")}
+                className="text-[11px] text-slate-500 hover:text-red-500"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+
           <input
             className="border border-slate-200 p-2 rounded text-sm"
             placeholder="Phone"

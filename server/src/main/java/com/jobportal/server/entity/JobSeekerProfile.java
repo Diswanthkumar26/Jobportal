@@ -25,6 +25,7 @@ public class JobSeekerProfile {
     private String currentRole;
     private String highestEducation;
     private String keySkills;
+    private String currentSalary;
     private String expectedSalary;
     private String workType;
 
@@ -103,6 +104,11 @@ public class JobSeekerProfile {
 
     public String getKeySkills() { return keySkills; }
     public void setKeySkills(String keySkills) { this.keySkills = keySkills; }
+
+    public String getCurrentSalary() { return currentSalary; }
+    public void setCurrentSalary(String currentSalary){
+        this.currentSalary = currentSalary;
+    }
 
     public String getExpectedSalary() { return expectedSalary; }
     public void setExpectedSalary(String expectedSalary) {

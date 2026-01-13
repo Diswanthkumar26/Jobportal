@@ -27,7 +27,7 @@ public class UserController {
         User user = userRepo.findByEmail(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Role newRole = Role.valueOf(role); // EMPLOYER / JOBSEEKER
+        Role newRole = Role.valueOf(role); 
 
         user.setRole(newRole);
         userRepo.save(user);

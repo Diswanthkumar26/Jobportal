@@ -1,3 +1,4 @@
+// src/main/java/com/jobportal/server/controller/JobSeekerProfileController.java
 package com.jobportal.server.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,6 +13,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 @RestController
 @RequestMapping("/api/profile/job-seeker")
@@ -49,6 +56,7 @@ public class JobSeekerProfileController {
         existing.setCurrentRole(profile.getCurrentRole());
         existing.setHighestEducation(profile.getHighestEducation());
         existing.setKeySkills(profile.getKeySkills());
+        existing.setCurrentSalary(profile.getCurrentSalary());
         existing.setExpectedSalary(profile.getExpectedSalary());
         existing.setWorkType(profile.getWorkType());
         existing.setAbout(profile.getAbout());
@@ -99,14 +107,6 @@ public class JobSeekerProfileController {
             existing.setSkills(String.join(", ", req.getSkills()));
         }
 
-        // if (req.getResumeUrl() != null) {
-        //     existing.setResumeUrl(req.getResumeUrl());
-        // }
-
-        // if (req.getResumeFileName() != null) {
-        //     existing.setResumeFileName(req.getResumeFileName());
-        // }
-
         if (req.getHeadline() != null) {
             existing.setCurrentRole(req.getHeadline());
         }
@@ -116,10 +116,24 @@ public class JobSeekerProfileController {
         }
 
         if (req.getPhotoUrl() != null) {
-            // assuming photo is stored on User
-            User user = existing.getUser();
-            user.setPhotoUrl(req.getPhotoUrl());
-            userRepo.save(user);
+    User user = existing.getUser();
+    if (req.getPhotoUrl().isEmpty()) {
+        user.setPhotoUrl(null); 
+    } else {
+        user.setPhotoUrl(req.getPhotoUrl()); 
+    }
+    userRepo.save(user);
+}
+
+
+
+
+        if (req.getCurrentSalary() != null) {
+            existing.setCurrentSalary(req.getCurrentSalary());
+        }
+
+        if (req.getExpectedSalary() != null) {
+            existing.setExpectedSalary(req.getExpectedSalary());
         }
 
         if (req.getExperiences() != null) {
@@ -173,19 +187,49 @@ public class JobSeekerProfileController {
     }
 
     @DeleteMapping("/resume")
-public ResponseEntity<?> deleteResume(Authentication authentication) {
-    String email = authentication.getName();
+    public ResponseEntity<?> deleteResume(Authentication authentication) {
+        String email = authentication.getName();
 
-    JobSeekerProfile existing = jobSeekerRepo
-        .findByUser_Email(email)
-        .orElseThrow(() -> new RuntimeException("Jobseeker profile not found"));
+        JobSeekerProfile existing = jobSeekerRepo
+                .findByUser_Email(email)
+                .orElseThrow(() -> new RuntimeException("Jobseeker profile not found"));
 
-    existing.setResumeUrl(null);
-    existing.setResumeFileName(null);
+        existing.setResumeUrl(null);
+        existing.setResumeFileName(null);
 
-    jobSeekerRepo.save(existing);
+        jobSeekerRepo.save(existing);
 
-    return ResponseEntity.ok().build();
-}
+        return ResponseEntity.ok().build();
+    }
 
+    // upload profile photo
+    @PostMapping("/me/photo")
+    public ResponseEntity<PhotoResponse> uploadPhoto(
+            @RequestParam("photo") MultipartFile photo,
+            Authentication authentication) throws Exception {
+
+        String email = authentication.getName();
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String filename = user.getId() + "-" + photo.getOriginalFilename();
+        Path uploadDir = Paths.get("uploads/users");
+        Files.createDirectories(uploadDir);
+        Files.copy(photo.getInputStream(), uploadDir.resolve(filename),
+                   StandardCopyOption.REPLACE_EXISTING);
+
+        String url = "/uploads/users/" + filename;
+
+        user.setPhotoUrl(url);
+        userRepo.save(user);
+
+        return ResponseEntity.ok(new PhotoResponse(url));
+    }
+
+    public static class PhotoResponse {
+        private String photoUrl;
+        public PhotoResponse(String photoUrl) { this.photoUrl = photoUrl; }
+        public String getPhotoUrl() { return photoUrl; }
+        public void setPhotoUrl(String photoUrl) { this.photoUrl = photoUrl; }
+    }
 }

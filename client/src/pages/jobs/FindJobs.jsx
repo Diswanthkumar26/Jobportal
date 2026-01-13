@@ -5,26 +5,35 @@ import api from "../../services/api";
 import Navbar from "../../components/common/Navbar";
 import JobCard from "../../components/JobCard";
 import { MOCK_JOBS } from "../../data/mockJobs";
+import { getJobSeekerProfile } from "../../services/profileApi";
 
-export default function FindJobs({ profile }) {
+export default function FindJobs() {
   const navigate = useNavigate();
 
+  // per-user saved key
   const userEmail = (localStorage.getItem("email") || "guest").toLowerCase();
   const SAVED_KEY = `savedJobs:${userEmail}`;
-  console.log("FindJobs SAVED_KEY =", SAVED_KEY);
 
   const [jobs, setJobs] = useState([]);
   const [keyword, setKeyword] = useState("");
   const [location, setLocation] = useState("all");
   const [jobType, setJobType] = useState("all");
   const [sortBy, setSortBy] = useState("relevant");
+  const [visibleCount, setVisibleCount] = useState(10);
 
   const [savedJobs, setSavedJobs] = useState(() => {
     const stored = localStorage.getItem(SAVED_KEY);
     return stored ? JSON.parse(stored) : [];
   });
 
-  const [visibleCount, setVisibleCount] = useState(10);
+  // profile + fields for completeness (same structure as JobseekerHome)
+  const [profile, setProfile] = useState(null);
+  const [about, setAbout] = useState("");
+  const [skills, setSkills] = useState([]);
+  const [experience, setExperience] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [certifications, setCertifications] = useState([]);
+  const [resumeUrl, setResumeUrl] = useState(null);
 
   useEffect(() => {
     localStorage.setItem(SAVED_KEY, JSON.stringify(savedJobs));
@@ -37,15 +46,111 @@ export default function FindJobs({ profile }) {
     );
   };
 
+  // load jobs
   useEffect(() => {
     api
       .get("/jobs")
       .then((res) => {
-        console.log("jobs[0] from API =", res.data?.[0]);
         setJobs(res.data || MOCK_JOBS);
       })
       .catch(() => setJobs(MOCK_JOBS));
   }, []);
+
+  // load profile for navbar + completeness (reuse dashboard/home logic)
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await getJobSeekerProfile();
+        const p = res.data;
+        const u = p.user || {};
+
+        const mappedProfile = {
+          name: `${p.firstName ?? ""} ${p.lastName ?? ""}`.trim(),
+          headline: p.currentRole || "",
+          location: p.currentCity || "",
+          photoUrl: u.photoUrl || "",
+        };
+        setProfile(mappedProfile);
+
+        setAbout(p.about || u.about || "");
+
+        if (p.skills) {
+          setSkills(
+            p.skills
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean)
+          );
+        } else if (Array.isArray(u.skills)) {
+          setSkills(u.skills);
+        } else {
+          setSkills([]);
+        }
+
+        if (p.experiencesJson) {
+          setExperience(JSON.parse(p.experiencesJson));
+        } else if (Array.isArray(u.experiences)) {
+          setExperience(u.experiences);
+        } else {
+          setExperience([]);
+        }
+
+        if (p.projectsJson) {
+          setProjects(JSON.parse(p.projectsJson));
+        } else if (Array.isArray(u.projects)) {
+          setProjects(u.projects);
+        } else {
+          setProjects([]);
+        }
+
+        if (p.certificationsJson) {
+          setCertifications(JSON.parse(p.certificationsJson));
+        } else if (Array.isArray(u.certifications)) {
+          setCertifications(u.certifications);
+        } else {
+          setCertifications([]);
+        }
+
+        const ru = p.resumeUrl || p.resume_url || null;
+        setResumeUrl(ru);
+      } catch (e) {
+        console.error("Failed to load profile for find jobs completeness", e);
+      }
+    })();
+  }, []);
+
+  const hasBasic =
+    (profile?.name && profile.name.trim().length > 0) ||
+    (profile?.headline && profile.headline.trim().length > 0) ||
+    (profile?.location && profile.location.trim().length > 0) ||
+    (profile?.photoUrl && profile.photoUrl.trim().length > 0);
+
+  const completeness = useMemo(() => {
+    let filledParts = 0;
+    const totalParts = 7; // basic, about, exp, projects, skills, resume, certs
+
+    if (hasBasic) filledParts += 1;
+    if (about) filledParts += 1;
+    if (experience.length) filledParts += 1;
+    if (projects.length) filledParts += 1;
+    if (skills.length) filledParts += 1;
+    if (resumeUrl) filledParts += 1;
+    if (certifications.length) filledParts += 1;
+
+    return Math.round((filledParts / totalParts) * 100);
+  }, [
+    hasBasic,
+    about,
+    experience.length,
+    projects.length,
+    skills.length,
+    resumeUrl,
+    certifications.length,
+  ]);
+
+  const profileWithCompleteness = profile
+    ? { ...profile, profileCompletedPercentage: completeness, skills }
+    : null;
 
   const allLocations = useMemo(
     () =>
@@ -109,10 +214,10 @@ export default function FindJobs({ profile }) {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Navbar profile={profile} />
+      <Navbar profile={profileWithCompleteness} />
 
       <main className="max-w-6xl mx-auto px-4 py-8 md:py-10 space-y-6">
-        {/* filters UI stays as you already have */}
+        {/* TODO: your filters UI here, reusing keyword/location/jobType/sortBy/allLocations/jobTypes */}
 
         <section className="bg-white rounded-2xl shadow-sm border border-slate-200">
           <div className="divide-y divide-slate-100">

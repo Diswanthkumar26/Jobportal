@@ -1,15 +1,44 @@
-// src/components/common/Navbar.jsx
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import ProfileProgressNav from "../ProfileProgressNav";
+import { normalizePhotoUrl } from "../../utils/photoUrl"; 
+import {
+  UserIcon,
+  Cog6ToothIcon,
+  ArrowRightOnRectangleIcon,
+} from "@heroicons/react/24/outline";
 
-const Navbar = ({ profile }) => {
+
+export default function Navbar({ profile }) {
   const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    navigate("/login");
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    const onClick = (e) => {
+      if (!menuRef.current) return;
+      if (!menuRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [open]);
 
   const percent =
     profile?.profileCompletedPercentage != null
       ? profile.profileCompletedPercentage
-      : 40; // fallback until you wire real completeness
+      : 40;
+
+  // take whatever photo we have on the profile and normalize it
+  const rawPhoto = profile?.photoUrl || "";
+  const avatarUrl = normalizePhotoUrl(rawPhoto);
+  console.log("NAVBAR avatarUrl", avatarUrl);
 
   return (
     <>
@@ -71,13 +100,56 @@ const Navbar = ({ profile }) => {
             </nav>
           </div>
 
-          {/* Right: circular profile progress, always visible */}
-          <div className="flex items-center gap-3">
-            <ProfileProgressNav
-              percent={percent}
-              image={profile?.photoUrl}
-            />
-          </div>
+          
+          {/* Right: profile progress with avatar + dropdown */}
+<div className="relative flex items-center gap-3">
+  <ProfileProgressNav
+  percent={percent}
+  image={avatarUrl}
+  onClick={() => setOpen((prev) => !prev)}
+/>
+
+  {open && (
+  <div className="absolute right-0 top-11 w-44 bg-white border border-slate-200 rounded-lg shadow-lg py-1 text-sm z-50">
+    <button
+      type="button"
+      className="w-full flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-50 focus:bg-slate-50"
+      onClick={() => {
+        setOpen(false);
+        navigate("/dashboard/jobseeker");
+      }}
+    >
+      <UserIcon className="w-4 h-4 text-slate-500" />
+      <span>Profile</span>
+    </button>
+
+    <button
+      type="button"
+      className="w-full flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-50 focus:bg-slate-50"
+      onClick={() => {
+        setOpen(false);
+        navigate("/settings");
+      }}
+    >
+      <Cog6ToothIcon className="w-4 h-4 text-slate-500" />
+      <span>Settings</span>
+    </button>
+
+    <div className="my-1 h-px bg-slate-100" />
+
+    <button
+      type="button"
+      className="w-full flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 focus:bg-red-50"
+      onClick={handleLogout}
+    >
+      <ArrowRightOnRectangleIcon className="w-4 h-4" />
+      <span>Logout</span>
+    </button>
+  </div>
+)}
+
+</div>
+
         </div>
       </header>
 
@@ -170,6 +242,4 @@ const Navbar = ({ profile }) => {
       </nav>
     </>
   );
-};
-
-export default Navbar;
+}
