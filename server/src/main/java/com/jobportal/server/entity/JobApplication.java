@@ -35,7 +35,7 @@ public class JobApplication {
     private String resumeFileName;
 
     @Column(nullable = false)
-    private String status = "APPLIED";  // APPLIED, SHORTLISTED, REJECTED
+    private String status = "APPLIED";  
 
     public JobApplication() {}
 

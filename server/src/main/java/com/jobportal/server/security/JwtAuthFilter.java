@@ -46,6 +46,7 @@ protected void doFilterInternal(
             String springRole = switch (role) {
                 case "JOB_SEEKER", "JOBSEEKER" -> "ROLE_JOBSEEKER";
                 case "EMPLOYER" -> "ROLE_EMPLOYER";
+                case "ADMIN" -> "ROLE_ADMIN"; 
                 default -> "ROLE_USER";
             };
 
@@ -66,3 +67,4 @@ protected void doFilterInternal(
     filterChain.doFilter(request, response);
 }
 }
+   

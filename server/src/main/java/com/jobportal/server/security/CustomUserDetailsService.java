@@ -28,7 +28,8 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         // Assuming User has getRole() like "EMPLOYER" or "JOBSEEKER"
         List<SimpleGrantedAuthority> authorities =
-                List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole()));
+    List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole()));
+
 
         return new CustomUserDetails(user, authorities);
     }

@@ -54,6 +54,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/jobs/**").authenticated()
                 .requestMatchers(HttpMethod.DELETE, "/api/jobs/**").authenticated()
                 .requestMatchers("/api/employer/**").authenticated()
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/profile/job-seeker/**").authenticated()
                 .requestMatchers("/api/profile/employer/**").authenticated()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()

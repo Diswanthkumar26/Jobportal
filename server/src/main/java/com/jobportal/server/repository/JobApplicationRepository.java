@@ -1,5 +1,7 @@
 package com.jobportal.server.repository;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,5 +18,11 @@ public interface JobApplicationRepository extends JpaRepository<JobApplication, 
     List<JobApplication> findByJob_Id(Long jobId);
 
     List<JobApplication> findByJobId(Long jobId);
+    
+    long countByAppliedAt(LocalDate appliedAt);
+
+    long countByAppliedAtBetween(LocalDateTime start, LocalDateTime end);
+
+    List<JobApplication> findTop5ByOrderByAppliedAtDesc();
 
 }

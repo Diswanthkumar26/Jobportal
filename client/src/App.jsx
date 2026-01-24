@@ -8,6 +8,12 @@ import ChooseRole from "./pages/ChooseRole";
 import JobSeekerDetails from "./pages/profile/JobSeekerDetails";
 import EmployerDetails from "./pages/profile/EmployerDetails";
 
+import AdminLayout from "./layouts/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminJobs from "./pages/admin/AdminJobs";
+import AdminApplications from "./pages/admin/AdminApplications";
+
 import JobSeekerDashboard from "./pages/dashboard/JobSeekerDashboard";
 import EmployerDashboard from "./pages/dashboard/EmployerDashboard";
 
@@ -77,7 +83,7 @@ export default function App() {
           }
         />
 
-        {/* DASHBOARD */}
+        {/* DASHBOARD (jobseeker) */}
         <Route
           path="/dashboard/jobseeker"
           element={
@@ -87,80 +93,94 @@ export default function App() {
           }
         />
 
+        {/* EMPLOYER (nested under /employer) */}
         <Route
-  path="/employer"
+          path="/employer"
+          element={
+            <PrivateRoute>
+              <EmployerLayout />
+            </PrivateRoute>
+          }
+        >
+          <Route
+            path="home"
+            element={
+              <PrivateRoute>
+                <EmployerHome />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="jobs"
+            element={
+              <PrivateRoute>
+                <EmployerJobsPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="jobs/:id"
+            element={
+              <PrivateRoute>
+                <EmployerJobDetails />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="jobs/:jobId/applicants"
+            element={
+              <PrivateRoute>
+                <EmployerJobApplicantsPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="candidates"
+            element={
+              <PrivateRoute>
+                <EmployerCandidatesPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="jobs/post"
+            element={
+              <PrivateRoute>
+                <JobPostPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="jobs/new"
+            element={
+              <PrivateRoute>
+                <JobPostPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="jobs/:id/edit"
+            element={
+              <PrivateRoute>
+                <JobPostPage />
+              </PrivateRoute>
+            }
+          />
+        </Route>
+
+        {/* ADMIN (new) */}
+        <Route
+  path="/admin"
   element={
-    <PrivateRoute>
-      <EmployerLayout />
+    <PrivateRoute allowedRoles={["ADMIN"]}>
+      <AdminLayout />
     </PrivateRoute>
   }
 >
-  <Route
-    path="home"
-    element={
-      <PrivateRoute>
-        <EmployerHome />
-      </PrivateRoute>
-    }
-  />
-  <Route
-    path="jobs"
-    element={
-      <PrivateRoute>
-        <EmployerJobsPage />
-      </PrivateRoute>
-    }
-  />
-  <Route
-    path="jobs/:id"
-    element={
-      <PrivateRoute>
-        <EmployerJobDetails />
-      </PrivateRoute>
-    }
-  />
-  <Route
-    path="jobs/:jobId/applicants"
-    element={
-      <PrivateRoute>
-        <EmployerJobApplicantsPage />
-      </PrivateRoute>
-    }
-  />
-  <Route
-    path="candidates"
-    element={
-      <PrivateRoute>
-        <EmployerCandidatesPage />
-      </PrivateRoute>
-    }
-  />
-  {/* create job */}
-  <Route
-    path="jobs/post"
-    element={
-      <PrivateRoute>
-        <JobPostPage />
-      </PrivateRoute>
-    }
-  />
-  {/* NEW & EDIT as relative paths */}
-  <Route
-    path="jobs/new"
-    element={
-      <PrivateRoute>
-        <JobPostPage />
-      </PrivateRoute>
-    }
-  />
-  <Route
-    path="jobs/:id/edit"
-    element={
-      <PrivateRoute>
-        <JobPostPage />
-      </PrivateRoute>
-    }
-  />
+  <Route index element={<AdminDashboard />} />
+  <Route path="users" element={<AdminUsers />} />
+  <Route path="jobs" element={<AdminJobs />} />
+  <Route path="applications" element={<AdminApplications />} />
 </Route>
 
 

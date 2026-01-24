@@ -70,7 +70,7 @@ export default function Login() {
 
       toast.success("Login successful");
 
-      if (role === "ADMIN") navigate("/admin/dashboard");
+      if (role === "ADMIN") navigate("/admin");
       else if (role === "EMPLOYER") navigate("/employer/home");
       else navigate("/home/jobseeker");
     } catch (err) {
