@@ -22,6 +22,8 @@ import EmployerHome from "./pages/home/EmployerHome";
 import JobPostPage from "./pages/employer/JobPostPage";
 import EmployerJobsPage from "./pages/employer/EmployerJobsPage";
 import EmployerCandidatesPage from "./pages/employer/EmployerCandidatesPage";
+import EmployerMessagesPage from "./pages/employer/EmployerMessagesPage";
+import EmployerCompanyProfile from "./pages/employer/EmployerCompanyProfile";
 import EmployerLayout from "./layouts/EmployerLayout";
 import EmployerJobApplicantsPage from "./pages/employer/EmployerJobApplicantsPage";
 import EmployerJobDetails from "./pages/employer/EmployerJobDetails";
@@ -139,6 +141,22 @@ export default function App() {
             element={
               <PrivateRoute>
                 <EmployerCandidatesPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="messages"
+            element={
+              <PrivateRoute>
+                <EmployerMessagesPage/>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="profile"
+            element={
+              <PrivateRoute>
+                <EmployerCompanyProfile/>
               </PrivateRoute>
             }
           />
